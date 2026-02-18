@@ -2,8 +2,6 @@ name: LaTeX to PDF
 
 on:
   push:
-    paths:
-      - '**.tex'
   workflow_dispatch:
 
 permissions:
