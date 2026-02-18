@@ -54,37 +54,19 @@ We connected Channel 1 of the Analog Discovery II oscilloscope to the output nod
 \section{Results}
 
 \subsection{Period Measured with Cursor}
+Using X cursors in Delta mode placed on consecutive rising edges, the period was read from the delta X value:
 
-\begin{table}[H]
-\centering\small
-\begin{tabular}{ccc}
-\toprule
-\textbf{Trial} & \textbf{Period (ns)} & \textbf{Frequency (MHz)} \\
-\midrule
-1 & 201.02 & 4.975 \\
-2 & 198.60 & 5.035 \\
-3 & 185.79 & 5.382 \\
-\midrule
-\textbf{Average} & \textbf{195.14} & \textbf{5.12} \\
-\bottomrule
-\end{tabular}
-\caption{Cursor-based period and frequency measurements.}
-\end{table}
+$\Delta X = 201.4$\,ns
 
-The period was read from the delta X column of the X cursors in WaveForms.
+This corresponds to a frequency of $1 / \Delta X = 1 / (201.4 \times 10^{-9}) \approx 4.965$\,MHz.
 
 \subsection{Computed Frequency}
-Average period:
 \[
-\bar{T} = \frac{201.02 + 198.60 + 185.79}{3} = 195.14\ \text{ns}
-\]
-Frequency:
-\[
-f = \frac{1}{\bar{T}} = \frac{1}{195.14 \times 10^{-9}} \approx 5.125\ \text{MHz}
+f = \frac{1}{T} = \frac{1}{201.4 \times 10^{-9}} \approx 4.965\ \text{MHz}
 \]
 
 \subsection{Measured Frequency}
-The Measurements panel in WaveForms reported a frequency of approximately 4.9983\,MHz with a period of 200.07\,ns. This is consistent with the cursor measurements within about 2.5\%.
+The Measurements panel in WaveForms reported a frequency of 4.9983\,MHz with a period of 200.07\,ns. This is consistent with the cursor measurement within about 0.7\%.
 
 \subsection{Oscilloscope Screenshot}
 
@@ -109,7 +91,11 @@ Typical propagation delay: $(3 + 10 + 15 + 4) / 4 = 8$\,ns
 
 Maximum propagation delay: 15\,ns
 
-\textbf{PQ-2.} The HIGH output from U2 is fed into the input of U0. U0 then produces a LOW output, which is sent to U1. U1 outputs HIGH, and this signal is fed back into U2, resulting in a LOW final output ($Z = 0$). Using the typical propagation delay of 8\,ns per gate, the total delay through the three gates is $3 \times 8 = 24$\,ns.
+\textbf{PQ-2.} Continuing from the exercise where the output of U2 is HIGH ($Z = 1$, 30\,ns elapsed using $t_p = 10$\,ns per gate):
+
+The HIGH output from U2 is fed into the input of U0. U0 then produces a LOW output, which is sent to U1. U1 outputs HIGH, and this signal is fed back into U2, resulting in a LOW final output ($Z = 0$). This second half of the cycle takes another $3 \times 10 = 30$\,ns.
+
+In total, the time that has passed since $Z = 0$ is $30 + 30 = 60$\,ns, which is one full period of oscillation.
 
 \textbf{PQ-3.} When EN $= 1$, each NAND gate operates normally. In this configuration, each gate effectively functions as an inverter. Since there are three inverters connected in a loop (an odd number of inversions), the signal continuously inverts as it circulates, causing oscillation.
 
@@ -129,13 +115,13 @@ T = 2 \times 3 \times 15 = 90\ \text{ns}, \quad f = \frac{1}{90 \times 10^{-9}} 
 \]
 
 \section{Discussion}
-The measured period of about 195\,ns (5.12\,MHz) is much longer than the predicted typical period of 48\,ns (20.83\,MHz). If we back-calculate the per-gate delay from the measurement:
+The measured period of about 200\,ns (4.9983\,MHz) is much longer than the predicted typical period of 48\,ns (20.83\,MHz). If we back-calculate the per-gate delay from the scope measurement:
 \[
-t_{pd,\text{meas}} = \frac{\bar{T}}{2G} = \frac{195.14}{6} \approx 32.5\ \text{ns}
+t_{pd,\text{meas}} = \frac{T}{2G} = \frac{200.07}{6} \approx 33.3\ \text{ns}
 \]
-This is more than double the datasheet maximum of 15\,ns. The main reason for this difference is the extra capacitance from the breadboard and jumper wires. The datasheet test conditions use $C_L = 15$\,pF, but breadboard wiring can add much more capacitance to each node, which slows down the transitions. This can be seen in the waveform where the edges are rounded instead of sharp, and the output voltage only swings from about 0\,V to 1.4\,V instead of the full 0 to 5\,V range. The small variation between cursor trials is likely due to noise on the breadboard. The enable mechanism worked correctly: setting EN to LOW stopped the oscillation, and setting EN to HIGH resumed it, which matches the expected behavior from PQ-3.
+This is more than double the datasheet maximum of 15\,ns. The main reason for this difference is the extra capacitance from the breadboard and jumper wires. The datasheet test conditions use $C_L = 15$\,pF, but breadboard wiring can add much more capacitance to each node, which slows down the transitions. This can be seen in the waveform where the edges are rounded instead of sharp, and the output voltage only swings from about 0\,V to 1.4\,V instead of the full 0 to 5\,V range. The cursor measurement (201.4\,ns) and the automatic scope measurement (200.07\,ns) agreed within about 0.7\%. The enable mechanism worked correctly: setting EN to LOW stopped the oscillation, and setting EN to HIGH resumed it, which matches the expected behavior from PQ-3.
 
 \section{Conclusion}
-In this lab, we successfully built and tested a ring oscillator using three NAND gates from the 74LS00 IC. We used the Analog Discovery II oscilloscope to measure the period and frequency of the output signal. The measured frequency of about 5.12\,MHz was lower than the theoretical prediction of 20.83\,MHz. This difference was mainly caused by the extra capacitance from the breadboard wiring, which increased the effective propagation delay per gate to about 32.5\,ns. The cursor measurements and the automatic measurements from the scope agreed within 2.5\%, and the enable function worked as expected. This experiment helped us understand how propagation delay determines oscillation frequency and why circuit layout affects the performance of digital circuits.
+In this lab, we successfully built and tested a ring oscillator using three NAND gates from the 74LS00 IC. We used the Analog Discovery II oscilloscope to measure the period and frequency of the output signal. The measured frequency of about 4.97\,MHz was lower than the theoretical prediction of 20.83\,MHz. This difference was mainly caused by the extra capacitance from the breadboard wiring, which increased the effective propagation delay per gate to about 33.3\,ns. The cursor measurement and the automatic scope measurement agreed within 0.7\%, and the enable function worked as expected. This experiment helped us understand how propagation delay determines oscillation frequency and why circuit layout affects the performance of digital circuits.
 
 \end{document}
