@@ -16,26 +16,44 @@
 % Roman numeral section counter
 \renewcommand{\thesection}{\Roman{section}}
 \titleformat{\section}{\normalfont\bfseries\large}{\thesection.}{0.5em}{}
+
+% Simple arabic numbering for subsections (1. 2. 3. not III.1)
+\renewcommand{\thesubsection}{\arabic{subsection}}
 \titleformat{\subsection}{\normalfont\bfseries}{\thesubsection.}{0.5em}{}
 
 \begin{document}
 
 \begin{center}
-  {\large \textbf{CDA 3201L Lab \#3: Ring Oscillator with 3 NAND Gates}}\\[4pt]
-  Tuan Khang Phan (UID: 030382645) \quad Huu Phat Nguyen (UID: U46082380)
+  {\large \textbf{Report for CDA 3201L Lab \#3}}\\[2pt]
+  {\large \textbf{Ring Oscillator with 3 NAND}}\\[8pt]
+  \begin{tabular}{ll}
+    \textbf{Name:} Tuan Khang Phan & \textbf{UID:} 030382645 \\
+    \textbf{Name:} Huu Phat Nguyen & \textbf{UID:} U46082380 \\
+  \end{tabular}
 \end{center}
 
 \section{Introduction}
-The goal of this lab is to use the oscilloscope in the Analog Discovery II to analyze a ring oscillator --- a self-oscillating circuit built from an odd number of inverting stages in a feedback loop. The oscillation frequency is governed entirely by gate propagation delay. We constructed the circuit using three NAND gates from a 74LS00 IC, measured the period with cursors, and compared the result to the datasheet prediction.
+The goal of this lab is to learn how to use the oscilloscope tool in the Analog Discovery II device. This helps us understand how to analyze and debug signals in a digital circuit. For this purpose, we built and tested a ring oscillator circuit using three NAND gates from a 74LS00 IC. We then measured the period and frequency of the output signal using the oscilloscope and compared the results with theoretical values calculated from the datasheet.
 
 \section{Methods and Materials}
-\textbf{Components:} SN74LS00N Quad NAND IC, breadboard, jumper wires, Analog Discovery II (scope + waveform generator), WaveForms software, 5\,V DC supply.
+To complete the circuit, we needed the following equipment:
+\begin{itemize}
+  \item SN74LS00N IC
+  \item Breadboard
+  \item Jumper wires
+  \item Alligator clips
+  \item Analog Discovery II (oscilloscope)
+  \item WaveForms software
+  \item 5\,V DC power supply
+\end{itemize}
 
-Three NAND gates (U3, U4, U5) were each configured as inverters by tying both inputs together. U5's output fed back to one input of U3; the second input of U3 was the EN (enable) line driven HIGH. Channel 1 of the scope was probed at node Z (output of U5), time base 50\,ns/div, triggering on the rising edge at 0\,V. X cursors were placed on consecutive rising edges to read $\Delta X$ directly; the Measurements panel cross-checked frequency.
+Three NAND gates from a single SN74LS00N IC were each configured as inverters by connecting both inputs together. The output of the third gate was fed back to the input of the first gate to create a closed loop. One input of the first gate was used as the enable (EN) line and was connected to HIGH to allow oscillation.
+
+We connected Channel 1 of the Analog Discovery II oscilloscope to the output node Z of the circuit. In WaveForms, we set the time base to 50\,ns/div and configured the trigger to rising edge on Channel 1 at 0\,V. We used X cursors placed on consecutive rising edges to measure the period directly. The Measurements panel was also used to cross-check the frequency reading.
 
 \section{Results}
 
-\subsection{Period Measured with Cursors}
+\subsection{Period Measured with Cursor}
 
 \begin{table}[H]
 \centering\small
@@ -53,59 +71,72 @@ Three NAND gates (U3, U4, U5) were each configured as inverters by tying both in
 \caption{Cursor-based period and frequency measurements.}
 \end{table}
 
+The period was read from the delta X column of the X cursors in WaveForms.
+
+\subsection{Computed Frequency}
+Average period:
 \[
 \bar{T} = \frac{201.02 + 198.60 + 185.79}{3} = 195.14\ \text{ns}
 \]
-
-\subsection{Computed Frequency}
+Frequency:
 \[
-f_{\text{computed}} = \frac{1}{\bar{T}} = \frac{1}{195.14 \times 10^{-9}} \approx \boxed{5.125\ \text{MHz}}
+f = \frac{1}{\bar{T}} = \frac{1}{195.14 \times 10^{-9}} \approx 5.125\ \text{MHz}
 \]
 
-\subsection{Measured Frequency (Oscilloscope)}
-The Measurements panel reported $f_{\text{measured}} \approx 4.9983$\,MHz (period $= 200.07$\,ns), consistent with cursor results to within 2.5\%.
+\subsection{Measured Frequency}
+The Measurements panel in WaveForms reported a frequency of approximately 4.9983\,MHz with a period of 200.07\,ns. This is consistent with the cursor measurements within about 2.5\%.
 
-\subsection{Oscilloscope Screenshot \& Physical Circuit}
+\subsection{Oscilloscope Screenshot}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\linewidth]{dashboard.jpg}\\[6pt]
-\includegraphics[width=0.50\linewidth]{circuit.jpg}
-\caption{Top: WaveForms display --- Ch1 (yellow) = node Z; Ch2 (blue) = intermediate node; $\Delta X \approx 201.4$\,ns. Bottom: Breadboard implementation using SN74LS00N.}
+\includegraphics[width=0.95\linewidth]{dashboard.jpg}
+\caption{WaveForms oscilloscope display showing the ring oscillator output waveform with X cursor period measurements.}
+\end{figure}
+
+\subsection{Physical Circuit}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.55\linewidth]{circuit.jpg}
+\caption{Breadboard implementation of the ring oscillator using SN74LS00N.}
 \end{figure}
 
 \section{Prelab Question Answers}
 
-\textbf{PQ-1.} From the SN74LS00 datasheet: typical $t_{p} \approx 7$\,ns for both $t_{PLH}$ and $t_{PHL}$; maximum $t_{p,\max} = 15$\,ns. Test conditions: $V_{CC} = 5$\,V, $C_L = 15$\,pF, $R_L = 2$\,k$\Omega$.
+\textbf{PQ-1.} From the SN74LS00 datasheet switching characteristics:
 
-\textbf{PQ-2.} Continuing from the lab handout (U2 output = HIGH, $Z=1$, 30\,ns elapsed):
-\begin{itemize}\setlength\itemsep{1pt}
-  \item U2 HIGH $\to$ U0 input HIGH $\to$ U0 output LOW \hfill(10\,ns)
-  \item U0 LOW $\to$ U1 input LOW $\to$ U1 output HIGH \hfill(10\,ns)
-  \item U1 HIGH $\to$ U2 input HIGH $\to$ U2 output LOW, $Z=0$ \hfill(10\,ns)
-\end{itemize}
-Another 30\,ns pass; $Z$ returns to 0. Total elapsed: 60\,ns = 1 full period.
+Typical propagation delay: $(3 + 10 + 15 + 4) / 4 = 8$\,ns
 
-\textbf{PQ-3.} Gate U3 is NAND(EN, $Z$):
-\begin{itemize}\setlength\itemsep{1pt}
-  \item \textbf{EN $= 1$:} NAND$(1,Z)=\overline{Z}$ --- U3 acts as inverter, loop oscillates.
-  \item \textbf{EN $= 0$:} NAND$(0,Z)=1$ always --- output locks HIGH, oscillation stops.
-\end{itemize}
+Maximum propagation delay: 15\,ns
 
-\textbf{PQ-4.} One full cycle traverses the loop twice, giving:
+\textbf{PQ-2.} The HIGH output from U2 is fed into the input of U0. U0 then produces a LOW output, which is sent to U1. U1 outputs HIGH, and this signal is fed back into U2, resulting in a LOW final output ($Z = 0$). Using the typical propagation delay of 8\,ns per gate, the total delay through the three gates is $3 \times 8 = 24$\,ns.
+
+\textbf{PQ-3.} When EN $= 1$, each NAND gate operates normally. In this configuration, each gate effectively functions as an inverter. Since there are three inverters connected in a loop (an odd number of inversions), the signal continuously inverts as it circulates, causing oscillation.
+
+When EN $= 0$, the output of each NAND gate is forced to 1, regardless of the feedback signal. Because all outputs remain HIGH, no inversion occurs, and therefore oscillation does not take place. The oscillator is disabled.
+
+\textbf{PQ-4.} The oscillation period depends on the propagation delay of the gates:
 \[
-T = 2 \cdot G \cdot t_p
+T = 2 \times G \times t_{pd}
 \]
-For $G=3$, $t_p=7$\,ns (typical): $T_{\text{typ}}=42$\,ns ($\approx23.8$\,MHz). For $t_p=15$\,ns (max): $T_{\text{max}}=90$\,ns ($\approx11.1$\,MHz).
+For $G = 3$ gates with typical $t_{pd} = 8$\,ns:
+\[
+T = 2 \times 3 \times 8 = 48\ \text{ns}, \quad f = \frac{1}{48 \times 10^{-9}} \approx 20.83\ \text{MHz}
+\]
+For maximum $t_{pd} = 15$\,ns:
+\[
+T = 2 \times 3 \times 15 = 90\ \text{ns}, \quad f = \frac{1}{90 \times 10^{-9}} \approx 11.1\ \text{MHz}
+\]
 
 \section{Discussion}
-The measured period ($\sim$195\,ns, 5.12\,MHz) is far longer than predicted. Back-calculating the implied per-gate delay:
+The measured period of about 195\,ns (5.12\,MHz) is much longer than the predicted typical period of 48\,ns (20.83\,MHz). If we back-calculate the per-gate delay from the measurement:
 \[
-t_{p,\text{meas}} = \frac{\bar{T}}{2G} = \frac{195.14\ \text{ns}}{6} \approx 32.5\ \text{ns}
+t_{pd,\text{meas}} = \frac{\bar{T}}{2G} = \frac{195.14}{6} \approx 32.5\ \text{ns}
 \]
-This exceeds the datasheet maximum of 15\,ns by over $2\times$. The primary cause is parasitic capacitance from breadboard wiring --- the datasheet specifies $C_L=15$\,pF, but breadboards can add 20--50\,pF per node, slowing each transition. This is visible in Figure 1: rounded edges indicate RC-limited switching. The suppressed output amplitude ($\sim$0 to 1.4\,V instead of 0 to 5\,V) further confirms heavy capacitive loading. The $\sim$15\,ns spread across cursor trials reflects supply-noise jitter typical of unshielded breadboard environments. The enable mechanism behaved correctly: EN LOW stopped oscillation, EN HIGH resumed it, consistent with PQ-3.
+This is more than double the datasheet maximum of 15\,ns. The main reason for this difference is the extra capacitance from the breadboard and jumper wires. The datasheet test conditions use $C_L = 15$\,pF, but breadboard wiring can add much more capacitance to each node, which slows down the transitions. This can be seen in the waveform where the edges are rounded instead of sharp, and the output voltage only swings from about 0\,V to 1.4\,V instead of the full 0 to 5\,V range. The small variation between cursor trials is likely due to noise on the breadboard. The enable mechanism worked correctly: setting EN to LOW stopped the oscillation, and setting EN to HIGH resumed it, which matches the expected behavior from PQ-3.
 
 \section{Conclusion}
-We built and measured a 3-NAND ring oscillator using the 74LS00 IC. The measured frequency ($\approx5.12$\,MHz, period 195\,ns) fell well below the theoretical $\approx23.8$\,MHz due to breadboard parasitic capacitance increasing the effective per-gate delay to $\sim$32.5\,ns. Cursor and automatic measurements agreed within 2.5\%, and enable logic performed as expected. The experiment illustrated how propagation delay governs oscillation frequency and why layout parasitics matter in high-speed digital design.
+In this lab, we successfully built and tested a ring oscillator using three NAND gates from the 74LS00 IC. We used the Analog Discovery II oscilloscope to measure the period and frequency of the output signal. The measured frequency of about 5.12\,MHz was lower than the theoretical prediction of 20.83\,MHz. This difference was mainly caused by the extra capacitance from the breadboard wiring, which increased the effective propagation delay per gate to about 32.5\,ns. The cursor measurements and the automatic measurements from the scope agreed within 2.5\%, and the enable function worked as expected. This experiment helped us understand how propagation delay determines oscillation frequency and why circuit layout affects the performance of digital circuits.
 
 \end{document}
