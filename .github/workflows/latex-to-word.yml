@@ -1,0 +1,40 @@
+name: LaTeX to Word
+
+on:
+  push:
+    paths:
+      - '**.tex'
+  workflow_dispatch:
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended pandoc
+
+      - name: Convert LaTeX to Word
+        run: |
+          for texfile in *.tex .*.tex; do
+            [ -f "$texfile" ] || continue
+            basename="${texfile%.tex}"
+            echo "Converting $texfile -> ${basename}.docx"
+            pandoc "$texfile" \
+              --from latex \
+              --to docx \
+              --resource-path=. \
+              --extract-media=media \
+              -o "${basename}.docx"
+          done
+
+      - name: Upload Word documents
+        uses: actions/upload-artifact@v4
+        with:
+          name: word-documents
+          path: '*.docx'
+          retention-days: 30
