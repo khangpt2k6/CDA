@@ -18,16 +18,17 @@ jobs:
         uses: xu-cheng/latex-action@v3
         with:
           root_file: report.tex
+          working_directory: cda_lab4
 
       - name: Commit and push PDF
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          ls -la *.pdf 2>/dev/null || echo "No PDF files found"
-          git add -f report.pdf
+          ls -la cda_lab4/*.pdf 2>/dev/null || echo "No PDF files found"
+          git add -f cda_lab4/report.pdf
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Auto-generate PDF from LaTeX"
+            git commit -m "Auto-generate PDF from LaTeX (Lab 4)"
             git push
           fi
