@@ -24,3 +24,4 @@ module full_adder_tb();
         #10 $finish;                 // End simulation at t=80
     end
 endmodule
+

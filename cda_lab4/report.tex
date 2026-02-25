@@ -158,28 +158,37 @@ cycling through the full truth table in binary order:
   \label{lst:tb}
 \end{figure}
 
+\subsection{Simulation Console Output}
+
+The console output below confirms all eight input combinations match the expected
+truth table:
+
+\begin{lstlisting}[language={}, numbers=none, frame=single,
+                   caption={Simulation console output from Synopsys VCS.}]
+Starting simulation...
+
+Time    a    b    cin    sum    cout
+
+ 0      0    0     0      0       0
+10      0    0     1      1       0
+20      0    1     0      1       0
+30      0    1     1      0       1
+40      1    0     0      1       0
+50      1    0     1      0       1
+60      1    1     0      0       1
+70      1    1     1      1       1
+$finish at simulation time 80
+\end{lstlisting}
+
 \subsection{Simulation Waveform}
 
-% Uncomment below once waveform.png is placed in the cda_lab4 folder:
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=0.95\linewidth]{waveform.png}
-%   \caption{EPWave waveform from EDAPlayground showing signals $a$, $b$, $c_{in}$,
-%            $c_{out}$, and $sum$ for all eight input combinations (0 to 70\,ns).}
-%   \label{fig:wave}
-% \end{figure}
-
-\subsection{Physical Circuit}
-
-% Uncomment below once circuit.jpg is placed in the cda_lab4 folder:
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=0.70\linewidth]{circuit.jpg}
-%   \caption{Breadboard implementation of the optimized full adder using SN74LS86N
-%            (XOR) and SN74LS00N (NAND) ICs. LEDs at the $sum$ and $c_{out}$ outputs
-%            confirm correct logic levels.}
-%   \label{fig:circuit}
-% \end{figure}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\linewidth]{waveform.jpg}
+  \caption{EPWave waveform from EDAPlayground showing signals $a$, $b$, $c_{in}$,
+           $c_{out}$, and $sum$ for all eight input combinations (0 to 70\,ns).}
+  \label{fig:wave}
+\end{figure}
 
 \section{Discussion}
 
