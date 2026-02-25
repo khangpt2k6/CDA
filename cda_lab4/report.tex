@@ -158,28 +158,6 @@ cycling through the full truth table in binary order:
   \label{lst:tb}
 \end{figure}
 
-\subsection{Simulation Console Output}
-
-\begin{lstlisting}[language={}, numbers=none, frame=single,
-                   caption={Simulation console output from Synopsys VCS.}]
-Starting simulation...
-
-Time    a    b    cin    cout    sum
-
- 0      0    0     0      0       0
-10      0    0     1      0       1
-20      0    1     0      0       1
-30      0    1     1      1       0
-40      1    0     0      0       1
-50      1    0     1      1       0
-60      1    1     0      1       0
-70      1    1     1      1       1
-$finish at simulation time 80
-\end{lstlisting}
-
-All eight input combinations produce outputs that exactly match the truth table in
-Table~\ref{tab:truth}, confirming correct functionality.
-
 \subsection{Simulation Waveform}
 
 % Uncomment below once waveform.png is placed in the cda_lab4 folder:
