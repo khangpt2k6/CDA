@@ -1,0 +1,400 @@
+\documentclass[12pt, letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{mathptmx}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[font={small,it}, justification=centering, labelfont=bf]{caption}
+\usepackage{float}
+\usepackage[skip=4pt]{parskip}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{array}
+
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{6pt}{2pt}
+
+% Roman numeral section counter
+\renewcommand{\thesection}{\Roman{section}}
+\titleformat{\section}{\normalfont\bfseries\large}{\thesection.}{0.5em}{}
+
+% Simple arabic numbering for subsections
+\renewcommand{\thesubsection}{\arabic{subsection}}
+\titleformat{\subsection}{\normalfont\bfseries}{\thesubsection.}{0.5em}{}
+
+% Verilog listing style
+\lstdefinelanguage{Verilog}{
+  morekeywords={module, endmodule, input, output, wire, reg, initial, begin,
+                end, assign, always, posedge, negedge, if, else},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+}
+\lstset{
+  language=Verilog,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries,
+  commentstyle=\color{gray}\itshape,
+  frame=single,
+  breaklines=true,
+  tabsize=4,
+  showstringspaces=false,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  xleftmargin=2em,
+}
+
+\begin{document}
+
+\begin{center}
+  {\large \textbf{Report for CDA 3201L Lab \#4}}\\[2pt]
+  {\large \textbf{Combinational Logic Design and Verilog HDL}}\\[8pt]
+  \begin{tabular}{ll}
+    \textbf{Name:} Tuan Khang Phan & \textbf{UID:} 030382645 \\
+    \textbf{Name:} Huu Phat Nguyen & \textbf{UID:} U46082380 \\
+  \end{tabular}
+\end{center}
+
+% ---------------------------------------------------------------
+\section{Introduction}
+% ---------------------------------------------------------------
+The goal of this lab is to design and implement a 1-bit full adder circuit using
+combinational logic, both in physical hardware and in Verilog HDL, and to confirm
+that both implementations are equivalent. We derive Boolean expressions for the two
+outputs---$sum$ and $c_{out}$---from a truth table using Karnaugh maps (K-maps), then
+optimize the circuit using Boolean algebra with XOR identities. The final design is
+implemented using two XOR gates (74LS86) and three NAND gates (74LS00), verified
+through structural Verilog simulation on EDAPlayground, and also constructed on a
+breadboard.
+
+% ---------------------------------------------------------------
+\section{Methods and Materials}
+% ---------------------------------------------------------------
+The following tools and components were used in this lab:
+\begin{itemize}
+  \item SN74LS86N IC (Quad 2-input XOR gate)
+  \item SN74LS00N IC (Quad 2-input NAND gate)
+  \item Breadboard, jumper wires, LEDs
+  \item 5\,V DC power supply
+  \item EDAPlayground (\texttt{edaplayground.com}) with Synopsys VCS simulator
+  \item EPWave (built-in waveform viewer in EDAPlayground)
+\end{itemize}
+
+The full adder was first designed analytically by constructing the truth table and
+extracting MSOP expressions via K-maps. An optimized gate-level circuit was then
+derived using XOR and NAND primitives. A structural Verilog module was written and
+verified via simulation with a testbench that exercises all eight input combinations.
+The physical circuit was then assembled on a breadboard using the 74LS86 and 74LS00
+ICs, with LEDs at the outputs to confirm functionality.
+
+% ---------------------------------------------------------------
+\section{Lab Assignment Questions}
+% ---------------------------------------------------------------
+
+\subsection{Truth Table and MSOP Expressions}
+
+The full adder has three inputs ($a$, $b$, $c_{in}$) and two outputs ($sum$, $c_{out}$).
+Table~\ref{tab:truth} shows the complete truth table.
+
+\begin{table}[H]
+  \centering
+  \caption{Full adder truth table.}
+  \label{tab:truth}
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabular}{ccc|cc}
+    \toprule
+    $a$ & $b$ & $c_{in}$ & $sum$ & $c_{out}$ \\
+    \midrule
+    0 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 1 & 1 & 0 \\
+    0 & 1 & 0 & 1 & 0 \\
+    0 & 1 & 1 & 0 & 1 \\
+    1 & 0 & 0 & 1 & 0 \\
+    1 & 0 & 1 & 0 & 1 \\
+    1 & 1 & 0 & 0 & 1 \\
+    1 & 1 & 1 & 1 & 1 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\textbf{K-map for $c_{out}$} \;($\sum m(3,5,6,7)$):
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{c|c|c|}
+  \multicolumn{1}{c}{} & \multicolumn{1}{c}{$c_{in}=0$} &
+  \multicolumn{1}{c}{$c_{in}=1$} \\
+  \cline{2-3}
+  $ab=00$ & 0 & 0 \\ \cline{2-3}
+  $ab=01$ & 0 & 1 \\ \cline{2-3}
+  $ab=11$ & 1 & 1 \\ \cline{2-3}
+  $ab=10$ & 0 & 1 \\ \cline{2-3}
+\end{tabular}
+\end{center}
+
+Groupings: $\{m_6, m_7\} \to ab$;\quad $\{m_3, m_7\} \to bc_{in}$;\quad
+$\{m_5, m_7\} \to ac_{in}$.
+\[
+  \boxed{c_{out} = ab + bc_{in} + ac_{in}}
+\]
+
+\textbf{K-map for $sum$} \;($\sum m(1,2,4,7)$):
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{c|c|c|}
+  \multicolumn{1}{c}{} & \multicolumn{1}{c}{$c_{in}=0$} &
+  \multicolumn{1}{c}{$c_{in}=1$} \\
+  \cline{2-3}
+  $ab=00$ & 0 & 1 \\ \cline{2-3}
+  $ab=01$ & 1 & 0 \\ \cline{2-3}
+  $ab=11$ & 0 & 1 \\ \cline{2-3}
+  $ab=10$ & 1 & 0 \\ \cline{2-3}
+\end{tabular}
+\end{center}
+
+The 1s form a checkerboard pattern with no adjacent groups possible, so the MSOP
+retains all four minterms:
+\[
+  \boxed{sum = \overline{a}\,\overline{b}\,c_{in}
+             + \overline{a}\,b\,\overline{c_{in}}
+             + a\overline{b}\,\overline{c_{in}}
+             + a b c_{in}}
+\]
+
+% ---------------------------------------------------------------
+\subsection{XOR and NAND-NAND Implementation}
+% ---------------------------------------------------------------
+
+\textbf{Sum using XOR gates:}
+
+The MSOP for $sum$ can be regrouped as:
+\begin{align*}
+  sum &= \overline{a}\,\overline{b}\,c_{in}
+       + \overline{a}\,b\,\overline{c_{in}}
+       + a\overline{b}\,\overline{c_{in}}
+       + abc_{in} \\
+      &= c_{in}(\overline{a}\,\overline{b} + ab)
+       + \overline{c_{in}}(\overline{a}\,b + a\overline{b}) \\
+      &= c_{in}\,\overline{(a \oplus b)}
+       + \overline{c_{in}}\,(a \oplus b) \\
+      &= c_{in} \oplus (a \oplus b) \\
+      &= a \oplus b \oplus c_{in}
+\end{align*}
+
+Implementation: use two XOR gates --- first compute $x = a \oplus b$, then
+$sum = x \oplus c_{in}$.
+
+\vspace{4pt}
+\textbf{$c_{out}$ as a NAND-NAND network:}
+
+Starting from the MSOP $c_{out} = ab + bc_{in} + ac_{in}$, apply the double complement
+and De~Morgan's theorem:
+\[
+  c_{out}
+    = \overline{\overline{ab + bc_{in} + ac_{in}}}
+    = \overline{(\overline{ab})\cdot(\overline{bc_{in}})\cdot(\overline{ac_{in}})}
+\]
+
+This requires four gates: three 2-input NAND gates to compute $\overline{ab}$,
+$\overline{bc_{in}}$, $\overline{ac_{in}}$, and one 3-input NAND gate to combine them.
+
+% ---------------------------------------------------------------
+\subsection{Optimized Design}
+% ---------------------------------------------------------------
+
+Examining the truth table, $c_{out} = 1$ whenever at least two of the three inputs
+$(a, b, c_{in})$ are 1:
+\[
+  (a,b,c_{in}) \in \{(0,1,1),\;(1,0,1),\;(1,1,0),\;(1,1,1)\}
+\]
+
+Using Hint~1 ($A \oplus B = \overline{A}B + A\overline{B}$), we can observe that
+the last two groupings (m$_3$, m$_5$) correspond to $c_{in}=1$ with exactly one of
+$a$ or $b$ equal to 1, i.e.\ $c_{in}=1$ and $a \oplus b = 1$. The remaining
+groupings (m$_6$, m$_7$) correspond to $a=b=1$. Therefore:
+
+\begin{align*}
+  c_{out} &= ab + bc_{in} + ac_{in} \\
+          &= ab + c_{in}(a + b) \\
+          &= ab + c_{in}\bigl((a \oplus b) + ab\bigr) \\
+          &= ab + c_{in}(a \oplus b) + abc_{in} \\
+          &= ab(1 + c_{in}) + c_{in}(a \oplus b) \\
+          &= \boxed{ab + c_{in}(a \oplus b)}
+\end{align*}
+
+Using Hint~2: the intermediate wire $x = a \oplus b$ is already present in the $sum$
+path, so we reuse it. Applying NAND-NAND to the optimized expression:
+\[
+  c_{out} = ab + c_{in} \cdot x
+          = \overline{(\overline{ab})\cdot(\overline{x \cdot c_{in}})}
+\]
+
+This requires only \textbf{3 NAND gates}:
+\begin{itemize}
+  \item $N_1 = \overline{ab}$ \hfill (NAND gate 1)
+  \item $N_2 = \overline{x \cdot c_{in}}$ where $x = a \oplus b$ \hfill (NAND gate 2)
+  \item $c_{out} = \overline{N_1 \cdot N_2}$ \hfill (NAND gate 3)
+\end{itemize}
+
+Combined with the 2~XOR gates for $sum$, the complete design uses exactly
+\textbf{2 XOR gates (74LS86) and 3 NAND gates (74LS00)}, consistent with Hint~3.
+The complete signal connections are:
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lll}
+  \toprule
+  Gate & Inputs & Output \\
+  \midrule
+  XOR$_1$ & $a,\; b$       & $x$ \\
+  XOR$_2$ & $x,\; c_{in}$  & $sum$ \\
+  NAND$_1$ & $a,\; b$       & $N_1$ \\
+  NAND$_2$ & $x,\; c_{in}$  & $N_2$ \\
+  NAND$_3$ & $N_1,\; N_2$   & $c_{out}$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+% ---------------------------------------------------------------
+\section{Experimental Results}
+% ---------------------------------------------------------------
+
+\subsection{Verilog Module}
+
+The structural Verilog module below implements the optimized full adder using the
+gate-level primitives \texttt{xor} and \texttt{nand}:
+
+\begin{lstlisting}[caption={Verilog module for the optimized full adder.},
+                   label={lst:module}]
+module full_adder(a, b, cin, sum, cout);
+    input  a, b, cin;
+    output sum, cout;
+    wire   x, n1, n2;
+
+    xor  (x,    a,  b  );   // x    = a XOR b
+    xor  (sum,  x,  cin);   // sum  = (a XOR b) XOR cin
+    nand (n1,   a,  b  );   // n1   = NAND(a, b)
+    nand (n2,   x,  cin);   // n2   = NAND(a XOR b, cin)
+    nand (cout, n1, n2 );   // cout = NAND(n1, n2)
+endmodule
+\end{lstlisting}
+
+\subsection{Verilog Testbench}
+
+The testbench exercises all eight input combinations in sequential 10-time-unit steps,
+cycling through the full truth table in binary order:
+
+\begin{lstlisting}[caption={Testbench for the full adder module.},
+                   label={lst:tb}]
+module full_adder_tb();
+    reg  a, b, cin;
+    wire sum, cout;
+
+    full_adder U0(a, b, cin, sum, cout);
+
+    initial begin
+        $dumpfile("test.vcd");
+        $dumpvars;
+        $display("Starting simulation...\n");
+        $display("Time\ta\tb\tcin\tcout\tsum\n");
+        $monitor("%2d\t%d\t%d\t%d\t%d\t%d",
+                 $time, a, b, cin, cout, sum);
+
+        a = 0; b = 0; cin = 0;   //  0: a=0 b=0 cin=0
+        #10 cin = 1;              // 10: a=0 b=0 cin=1
+        #10 cin = 0; b = 1;       // 20: a=0 b=1 cin=0
+        #10 cin = 1;              // 30: a=0 b=1 cin=1
+        #10 cin = 0; b = 0; a = 1;// 40: a=1 b=0 cin=0
+        #10 cin = 1;              // 50: a=1 b=0 cin=1
+        #10 cin = 0; b = 1;       // 60: a=1 b=1 cin=0
+        #10 cin = 1;              // 70: a=1 b=1 cin=1
+        #10 $finish;
+    end
+endmodule
+\end{lstlisting}
+
+\subsection{Simulation Console Output}
+
+\begin{lstlisting}[language={}, numbers=none, frame=single,
+                   caption={Simulation console output from Synopsys VCS.}]
+Starting simulation...
+
+Time    a    b    cin    cout    sum
+
+ 0      0    0     0      0       0
+10      0    0     1      0       1
+20      0    1     0      0       1
+30      0    1     1      1       0
+40      1    0     0      0       1
+50      1    0     1      1       0
+60      1    1     0      1       0
+70      1    1     1      1       1
+$finish at simulation time 80
+\end{lstlisting}
+
+All eight input combinations produce outputs that exactly match the truth table in
+Table~\ref{tab:truth}, confirming correct functionality.
+
+\subsection{Simulation Waveform}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\linewidth]{waveform.png}
+  \caption{EPWave waveform from EDAPlayground showing signals $a$, $b$, $c_{in}$,
+           $c_{out}$, and $sum$ for all eight input combinations (0--70\,ns).}
+  \label{fig:wave}
+\end{figure}
+
+\subsection{Physical Circuit}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.70\linewidth]{circuit.jpg}
+  \caption{Breadboard implementation of the optimized full adder using SN74LS86N
+           (XOR) and SN74LS00N (NAND) ICs. LEDs at the $sum$ and $c_{out}$ outputs
+           confirm correct logic levels.}
+  \label{fig:circuit}
+\end{figure}
+
+% ---------------------------------------------------------------
+\section{Discussion}
+% ---------------------------------------------------------------
+
+The simulation output verified that the Verilog module correctly computes $sum$ and
+$c_{out}$ for all eight input combinations. Every row of the truth table was reproduced,
+and the EPWave waveform displayed the expected signal transitions at 10\,ns intervals.
+
+The key insight of Question~3 is that $c_{out} = 1$ precisely when at least two of the
+three inputs are 1 (a majority function). Expressing this as
+$c_{out} = ab + c_{in}(a \oplus b)$ allows the intermediate wire $x = a \oplus b$---already
+required for computing $sum$---to be shared, reducing the $c_{out}$ path to only 3 NAND
+gates instead of the 4 required by the direct NAND-NAND form of the MSOP. This
+sharing is possible because $c_{in}$ carries into the sum when exactly one of $a$ and
+$b$ is 1, and that condition is exactly $a \oplus b = 1$.
+
+For the physical hardware, both ICs were powered from the 5\,V rail and grounded
+through the breadboard bus. Input pins were tied to VCC (logic~1) or GND (logic~0)
+to test each combination. The LED states at $sum$ and $c_{out}$ agreed with the
+simulation and truth table in all cases, confirming that the hardware and Verilog
+implementations are equivalent.
+
+% ---------------------------------------------------------------
+\section{Conclusion}
+% ---------------------------------------------------------------
+
+In this lab, we successfully designed and implemented a 1-bit full adder using a
+combination of XOR and NAND gates. The truth table was derived, K-maps were applied
+to extract MSOP expressions, and Boolean algebra was used to simplify $c_{out}$ into
+a form that reuses the $a \oplus b$ intermediate signal. The final design requires
+only 2 XOR gates (74LS86) and 3 NAND gates (74LS00). Structural Verilog simulation
+on EDAPlayground verified all eight input combinations, and the physical breadboard
+implementation agreed with the expected truth table values in every case. This lab
+demonstrated how HDL simulation and physical prototyping can be combined to validate
+a combinational logic design, and illustrated the practical value of Boolean
+simplification in reducing gate count.
+
+\end{document}
