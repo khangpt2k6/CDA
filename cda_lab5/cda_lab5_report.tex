@@ -55,18 +55,17 @@ The purpose of this lab is to get familiar with higher level digital devices lik
 We used the following components and equipment:
 
 \begin{itemize}
-  \item 74LS04N inverter IC
-  \item 74LS08N 2-input AND gate IC (x2)
-  \item 74LS32N 2-input OR gate IC
-  \item 74LS86N XOR gate IC
-  \item 74LS153N dual 4-to-1 multiplexer IC
+  \item SN74LS04N inverter IC
+  \item MM74HC11N 3-input AND gate IC
+  \item SN74LS86AN 2-input XOR gate IC
+  \item SN74LS153N dual 4-to-1 multiplexer IC
   \item Breadboard
   \item Jumper wires
   \item LED and resistor
   \item 5\,V DC power supply
 \end{itemize}
 
-We started by writing out the truth tables for the 2-to-1 and 4-to-1 multiplexers and then derived the SOP expressions from those tables. For the 4-to-1 mux, the SOP has four product terms, each with three inputs (two select lines and one data input). Since the 74LS08N only provides 2-input AND gates, we had to cascade two AND gates for each product term, which doubled the number of AND gates we needed. After building the AND portion, we used OR gates from the 74LS32N to combine the four product terms into a single output.
+We started by writing out the truth tables for the 2-to-1 and 4-to-1 multiplexers and then derived the SOP expressions from those tables. Each product term in the 4-to-1 mux SOP has three inputs (two select lines and one data input). We used the MM74HC11N which provides 3-input AND gates directly, so each product term maps to exactly one gate without any cascading needed. No OR gate was required in this implementation.
 
 We wired up the 74LS153N in parallel with our custom mux so both received the exact same inputs and select lines. To compare the two outputs, we connected them to a 74LS86N XOR gate followed by an inverter from the 74LS04N. When both outputs match, the XOR gives 0, and the inverter flips it to 1, lighting up the LED. If the outputs ever disagree, the LED turns off.
 
@@ -124,14 +123,13 @@ Y = \overline{S_1} \cdot \overline{S_0} \cdot I_0 + \overline{S_1} \cdot S_0 \cd
 To build the 4-to-1 multiplexer from basic gates, we needed:
 
 \begin{itemize}
-  \item 2 inverters (from 74LS04N) to generate $\overline{S_0}$ and $\overline{S_1}$
-  \item 8 two-input AND gates (from 2 x 74LS08N) because each of the 4 product terms requires 3 inputs, and with 2-input AND gates we need to cascade two per term
-  \item 3 two-input OR gates (from 74LS32N) to combine the 4 product terms in a tree structure
+  \item 2 inverters (from SN74LS04N) to generate $\overline{S_0}$ and $\overline{S_1}$
+  \item 2 three-input AND gates (from MM74HC11N) for the product terms
 \end{itemize}
 
-For the comparator circuit, we used 1 XOR gate (from 74LS86N) and 1 additional inverter (from the same 74LS04N).
+For the comparator circuit, we used 1 XOR gate (from SN74LS86AN) and 1 additional inverter (from the same SN74LS04N). No OR gate was used in this implementation.
 
-In total, the entire setup used 5 ICs for the custom mux and comparator: 1 x 74LS04N, 2 x 74LS08N, 1 x 74LS32N, 1 x 74LS86N. Plus the 74LS153N as the reference mux.
+In total, the entire setup used: 1 x SN74LS04N (inverters), 1 x MM74HC11N (AND gates), 1 x SN74LS86AN (XOR comparator), plus the SN74LS153N as the reference mux.
 
 \subsection{Verilog Implementation}
 
@@ -234,7 +232,7 @@ We would use two 4-to-1 muxes and one 2-to-1 mux. The first 4-to-1 mux takes inp
 
 The physical circuit worked as expected. With inputs set to 1010, the LED correctly turned on only when the selected input was HIGH ($S_1S_0 = 00$ selecting $I_0 = 1$ and $S_1S_0 = 10$ selecting $I_2 = 1$). The fact that both our custom mux and the 74LS153N agreed on every test case confirms that our gate level implementation of the SOP expression is correct.
 
-One thing we noticed during the build is that the custom mux takes up a lot more space on the breadboard compared to just using the 74LS153N. We needed two 74LS08N chips because each product term requires a 3-input AND, but the 74LS08N only has 2-input gates, so we had to cascade them. This is a good example of why higher level ICs exist: they save board space, reduce wiring complexity, and are less prone to mistakes.
+One thing we noticed during the build is that the custom mux still takes up noticeably more space on the breadboard compared to just plugging in the SN74LS153N. Even with the MM74HC11N providing 3-input AND gates directly and eliminating the need for an OR gate, the wiring between inverters, AND gates, and the comparator adds up quickly. This is a good example of why higher level ICs exist: they save board space, reduce wiring complexity, and are less prone to mistakes.
 
 The Verilog implementation was straightforward once we had the 2-to-1 mux working. The hierarchical approach made it easy to scale up, and the testbench confirmed the output matched expectations for all 64 input combinations.
 
