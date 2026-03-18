@@ -10,6 +10,8 @@
 \usepackage[skip=4pt]{parskip}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+\usepackage{tikz}
+\usetikzlibrary{automata, positioning, arrows.meta}
 \usepackage{titlesec}
 \titlespacing*{\section}{0pt}{8pt}{4pt}
 \titlespacing*{\subsection}{0pt}{6pt}{2pt}
@@ -60,16 +62,34 @@ First, we derived the state transition table and excitation equations from the l
 
 \subsection{State Transition Diagram and K-map for $Q_1^*$}
 
-The game show circuit has four states:
+The game show circuit has four states: State A (wait, $Y_1Y_0 = 00$), State B (contestant 0 wins, $Y_1Y_0 = 01$), State C (contestant 1 wins, $Y_1Y_0 = 10$), and State D (tie, $Y_1Y_0 = 11$). The state transition diagram is shown below:
 
-\begin{itemize}
-  \item \textbf{State A} ($Q_1Q_0 = 00$): Wait state. No contestant has rung in. Both LEDs are off ($Y_1Y_0 = 00$).
-  \item \textbf{State B} ($Q_1Q_0 = 01$): Contestant 0 wins. LED0 is on ($Y_1Y_0 = 01$).
-  \item \textbf{State C} ($Q_1Q_0 = 10$): Contestant 1 wins. LED1 is on ($Y_1Y_0 = 10$).
-  \item \textbf{State D} ($Q_1Q_0 = 11$): Tie. Both LEDs are on ($Y_1Y_0 = 11$).
-\end{itemize}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[->, >=Stealth, node distance=3.5cm, thick,
+    every state/.style={minimum size=1.2cm, font=\small}]
 
-The state transition table is:
+  \node[state, initial, initial text=reset] (A) {$\begin{array}{c} A \\ 00 \end{array}$};
+  \node[state, below right of=A] (B) {$\begin{array}{c} B \\ 01 \end{array}$};
+  \node[state, above right of=A] (C) {$\begin{array}{c} C \\ 10 \end{array}$};
+  \node[state, right of=A, node distance=5.5cm] (D) {$\begin{array}{c} D \\ 11 \end{array}$};
+
+  % From A
+  \path (A) edge [loop left] node[left] {00} (A)
+        (A) edge [bend right] node[below left] {01} (B)
+        (A) edge [bend left] node[above left] {10} (C)
+        (A) edge node[above] {11} (D);
+
+  % Self-loops for B, C, D (all inputs)
+  \path (B) edge [loop below] node[below] {XX} (B);
+  \path (C) edge [loop above] node[above] {XX} (C);
+  \path (D) edge [loop right] node[right] {XX} (D);
+
+\end{tikzpicture}
+\caption{State transition diagram for the game show circuit. Each state is labeled with its name and encoding ($Q_1Q_0$). Transitions are labeled with the input $X_1X_0$. States B, C, and D have self-loops on all inputs (denoted XX), meaning once entered, the state is locked until reset.}
+\end{figure}
+
+The state transition table formalizing this behavior is:
 
 \begin{center}
   \begin{tabular}{|c|cccc|c|}
@@ -103,8 +123,8 @@ From the state transition table, the K-map for $Q_1^*$ is:
 
 Grouping the 1s in the K-map:
 \begin{itemize}
-  \item The four cells in rows $Q_1Q_0 = 10$ and $Q_1Q_0 = 11$ form a group of 8, giving the term $Q_1$.
-  \item The two cells at $Q_1Q_0 = 00$, $X_1X_0 = 10$ and $Q_1Q_0 = 00$, $X_1X_0 = 11$ combine with the corresponding cells in row 10, giving the term $X_1 \cdot \overline{Q_0}$.
+  \item \textbf{Group 1 (8 cells):} All eight cells in rows $Q_1Q_0 = 10$ and $Q_1Q_0 = 11$ are 1. These two rows share $Q_1 = 1$, so this group simplifies to the single term $Q_1$.
+  \item \textbf{Group 2 (4 cells):} The two cells at ($Q_1Q_0 = 00$, $X_1X_0 = 10$) and ($Q_1Q_0 = 00$, $X_1X_0 = 11$) combine with the adjacent cells at ($Q_1Q_0 = 10$, $X_1X_0 = 10$) and ($Q_1Q_0 = 10$, $X_1X_0 = 11$). These four cells share $Q_0 = 0$ and $X_1 = 1$, giving the term $X_1 \cdot \overline{Q_0}$.
 \end{itemize}
 
 The simplified excitation equation is:
