@@ -44,19 +44,18 @@ The purpose of this lab is to gain a deeper understanding of sequential circuit 
 We used the following components and equipment:
 
 \begin{itemize}
-  \item 74LS74 dual positive edge-triggered D flip-flop IC
+  \item 74LS74 dual positive edge-triggered D flip-flop IC (provides both $Q$ and $\overline{Q}$ outputs, eliminating the need for a separate inverter)
   \item 74LS08 quad 2-input AND gate IC
   \item 74LS32 quad 2-input OR gate IC
-  \item 74LS04 hex inverter IC
   \item Breadboard and jumper wires
   \item Two LEDs and resistors
-  \item Two push buttons (for contestant inputs $X_1$ and $X_0$)
+  \item Three push buttons (contestant inputs $X_0$ and $X_1$, plus a reset button)
   \item 5\,V DC power supply
   \item Function generator (for the clock signal)
   \item Oscilloscope
 \end{itemize}
 
-First, we derived the state transition table and excitation equations from the lab specification. We then filled in the Karnaugh maps for $Q_0^*$ and $Q_1^*$ and simplified the expressions. Using the 74LS74 datasheet, we identified the pin-out for the DFFs, including the asynchronous clear (CLR) pin used for reset. We configured the function generator to output a square wave at an appropriate frequency and amplitude to serve as the clock. The circuit was wired on the breadboard, connecting the combinational logic for the D inputs of each flip-flop, the clock from the function generator, and the reset via the CLR pins. The Q outputs of the flip-flops were connected directly to LEDs through current-limiting resistors.
+First, we derived the state transition table and excitation equations from the lab specification. We then filled in the Karnaugh maps for $Q_0^*$ and $Q_1^*$ and simplified the expressions. Using the 74LS74 datasheet, we identified the pin-out for the DFFs, including the asynchronous clear (CLR) pin used for reset. Importantly, the 74LS74 provides both $Q$ and $\overline{Q}$ outputs, so the complemented state bits ($\overline{Q_0}$ and $\overline{Q_1}$) needed in the excitation equations are available directly from the flip-flop without requiring a separate inverter IC. We configured the function generator to output a square wave at an appropriate frequency and amplitude to serve as the clock. The circuit was wired on the breadboard using only three ICs (74LS74, 74LS08, 74LS32), connecting the combinational logic for the D inputs of each flip-flop, the clock from the function generator, and a push button for reset via the CLR pins. The Q outputs of the flip-flops were connected directly to LEDs through current-limiting resistors.
 
 \section{Results}
 
@@ -161,11 +160,11 @@ If both contestants press simultaneously ($X_1X_0 = 11$), the circuit transition
 
 In all non-wait states (B, C, D), the excitation equations ensure that the present state bits that are already 1 remain 1, and the bits that are 0 cannot become 1 because the corresponding input term is multiplied by the complement of the other state bit (which is already 1). This is what makes the circuit ``lock'' once a winner is determined.
 
-To return to the wait state, the asynchronous CLR input on the 74LS74 is asserted (active low), which forces both flip-flop outputs to 0 regardless of the clock or D inputs.
+To return to the wait state, a third push button is used to assert the asynchronous CLR input on the 74LS74 (active low), which forces both flip-flop outputs to 0 regardless of the clock or D inputs.
 
 \subsection{Physical Circuit Testing}
 
-The circuit was built on a breadboard using the 74LS74 DFF IC along with AND, OR, and inverter gate ICs. The function generator was connected to the clock input of both flip-flops, and an oscilloscope probe was used to verify the clock signal.
+The circuit was built on a breadboard using only three ICs: the 74LS74 DFF IC, a 74LS08 AND gate IC, and a 74LS32 OR gate IC. No inverter IC was needed because the $\overline{Q}$ outputs of the 74LS74 directly provide the complemented state bits. The function generator was connected to the clock input of both flip-flops, and an oscilloscope probe was used to verify the clock signal.
 
 \begin{figure}[H]
 \centering
@@ -205,6 +204,6 @@ The results were consistent with our expectations from the state transition tabl
 
 \section{Conclusion}
 
-In this lab, we designed and implemented a sequential game show circuit using D flip-flops. The circuit correctly determines which contestant rings in first and locks the result until reset. We derived the excitation equations using Karnaugh maps, implemented the combinational logic with AND, OR, and inverter gates feeding into a 74LS74 DFF IC, and used a function generator for clocking. The lab reinforced our understanding of sequential circuit design, including state transition tables, excitation equations, and the practical considerations of clocking and resetting flip-flop based circuits.
+In this lab, we designed and implemented a sequential game show circuit using D flip-flops. The circuit correctly determines which contestant rings in first and locks the result until reset. We derived the excitation equations using Karnaugh maps and implemented the combinational logic with only three ICs: a 74LS74 DFF (whose $\overline{Q}$ outputs provided the needed complements, eliminating the need for a separate inverter), a 74LS08 AND gate, and a 74LS32 OR gate. Three push buttons served as inputs for contestant 0, contestant 1, and reset. A function generator provided the clock signal. The lab reinforced our understanding of sequential circuit design, including state transition tables, excitation equations, and the practical considerations of clocking and resetting flip-flop based circuits.
 
 \end{document}
