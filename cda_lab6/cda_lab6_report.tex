@@ -27,10 +27,10 @@
 \begin{document}
 
 \begin{center}
-  {\large \textbf{Report for CDA 3201L Lab \#6}}\\[2pt]
-  {\large \textbf{Sequential Circuits -- Game Show Circuit}}\\[8pt]
+  {\Large \textbf{Report for CDA 3201L Lab \#6}}\\[10pt]
+  {\large \textbf{Sequential Circuits -- Game Show Circuit}}\\[20pt]
   \begin{tabular}{ll}
-    \textbf{Name:} Tuan Khang Phan & \textbf{UID:} U30382645 \\
+    \textbf{Name:} Tuan Khang Phan & \textbf{UID:} U30382645 \\[4pt]
     \textbf{Name:} Huu Phat Nguyen & \textbf{UID:} U46082380 \\
   \end{tabular}
 \end{center}
@@ -69,13 +69,13 @@ The game show circuit has four states: State A (wait, $Y_1Y_0 = 00$), State B (c
 \begin{tikzpicture}[->, >=Stealth, node distance=3.5cm, thick,
     every state/.style={minimum size=1.2cm, font=\small}]
 
-  \node[state, initial, initial text=reset] (A) {$\begin{array}{c} A \\ 00 \end{array}$};
+  \node[state, initial, initial text=reset, initial where=left] (A) {$\begin{array}{c} A \\ 00 \end{array}$};
   \node[state, below right of=A] (B) {$\begin{array}{c} B \\ 01 \end{array}$};
   \node[state, above right of=A] (C) {$\begin{array}{c} C \\ 10 \end{array}$};
   \node[state, right of=A, node distance=5.5cm] (D) {$\begin{array}{c} D \\ 11 \end{array}$};
 
   % From A
-  \path (A) edge [loop left] node[left] {00} (A)
+  \path (A) edge [loop above] node[above] {00} (A)
         (A) edge [bend right] node[below left] {01} (B)
         (A) edge [bend left] node[above left] {10} (C)
         (A) edge node[above] {11} (D);
