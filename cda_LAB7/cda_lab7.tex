@@ -15,9 +15,6 @@
 \usepackage{titlesec}
 \titlespacing*{\section}{0pt}{8pt}{4pt}
 \titlespacing*{\subsection}{0pt}{6pt}{2pt}
-\usepackage{listings}
-\usepackage{xcolor}
-
 % Roman numeral section counter
 \renewcommand{\thesection}{\Roman{section}}
 \titleformat{\section}{\normalfont\bfseries\large}{\thesection.}{0.5em}{}
@@ -25,21 +22,6 @@
 % Simple arabic numbering for subsections
 \renewcommand{\thesubsection}{\arabic{subsection}}
 \titleformat{\subsection}{\normalfont\bfseries}{\thesubsection.}{0.5em}{}
-
-\lstdefinestyle{verilog}{
-  language=Verilog,
-  basicstyle=\ttfamily\footnotesize,
-  keywordstyle=\color{blue}\bfseries,
-  commentstyle=\color{gray}\itshape,
-  stringstyle=\color{orange},
-  numbers=left,
-  numberstyle=\tiny\color{gray},
-  stepnumber=1,
-  frame=single,
-  breaklines=true,
-  tabsize=2,
-  showstringspaces=false,
-}
 
 \begin{document}
 
@@ -107,63 +89,17 @@ LEDs with the SN74LS47N and 7-segment display.
 The following Verilog module describes the 3-bit Gray code counter behaviorally using a
 \texttt{case} statement that encodes the Gray code sequence directly:
 
-\begin{lstlisting}[style=verilog, caption={Behavioral Verilog model for the 3-bit Gray code counter.}]
-module gray_counter (
-    input        clk,
-    input        reset,
-    output reg [2:0] Q
-);
-    always @(posedge clk or posedge reset) begin
-        if (reset)
-            Q <= 3'b000;
-        else begin
-            case (Q)
-                3'b000: Q <= 3'b001;
-                3'b001: Q <= 3'b011;
-                3'b011: Q <= 3'b010;
-                3'b010: Q <= 3'b110;
-                3'b110: Q <= 3'b111;
-                3'b111: Q <= 3'b101;
-                3'b101: Q <= 3'b100;
-                3'b100: Q <= 3'b000;
-                default: Q <= 3'b000;
-            endcase
-        end
-    end
-endmodule
-\end{lstlisting}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\linewidth]{gray_counter.png}
+\caption{Listing 1 -- Behavioral Verilog model for the 3-bit Gray code counter.}
+\end{figure}
 
-\begin{lstlisting}[style=verilog, caption={Testbench for the 3-bit Gray code counter.}]
-module gray_counter_tb;
-    reg        clk, reset;
-    wire [2:0] Q;
-
-    gray_counter uut (
-        .clk   (clk),
-        .reset (reset),
-        .Q     (Q)
-    );
-
-    // 10 ns period clock
-    initial clk = 0;
-    always #5 clk = ~clk;
-
-    initial begin
-        $dumpfile("gray_counter.vcd");
-        $dumpvars(0, gray_counter_tb);
-
-        reset = 1;
-        #12;          // hold reset for just over one rising edge
-        reset = 0;
-
-        #160;         // run for more than two full counter cycles
-        $finish;
-    end
-
-    initial
-        $monitor("%0t  clk=%b  reset=%b  Q=%b", $time, clk, reset, Q);
-endmodule
-\end{lstlisting}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\linewidth]{gray_counter_tb.png}
+\caption{Listing 2 -- Testbench for the 3-bit Gray code counter.}
+\end{figure}
 
 The simulated waveform below shows the clock, reset, and $Q_2 Q_1 Q_0$ output signals
 cycling correctly through the Gray code sequence.  After reset is de-asserted, the
