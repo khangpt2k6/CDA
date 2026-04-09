@@ -70,13 +70,16 @@ include a 74LS47N BCD-to-7-segment decoder/driver and a 7-segment display.
 We used the following components and equipment:
 
 \begin{itemize}
-  \item Two 74LS74 dual positive edge-triggered DFF ICs (provides $Q$ and $\overline{Q}$
-        outputs directly; asynchronous CLR used for reset)
-  \item One 74LS00 quad 2-input NAND gate IC
+  \item Two SN74LS109AN dual positive edge-triggered JK flip-flop ICs (configured as
+        DFFs by connecting $J = D$ and $\overline{K} = D$; provides both $Q$ and
+        $\overline{Q}$ outputs; asynchronous active-low CLR used for reset)
+  \item One SN74LS08N quad 2-input AND gate IC
+  \item One SN74LS86AN quad 2-input XOR gate IC
+  \item One SN74LS04N hex inverter IC
   \item Three LEDs and current-limiting resistors (for original circuit)
-  \item 74LS47N BCD-to-7-segment decoder/driver and common-anode 7-segment display
+  \item SN74LS47N BCD-to-7-segment decoder/driver and common-anode 7-segment display
         (for modified circuit)
-  \item One push button and pull-down resistor (for reset)
+  \item One push button and pull-up resistor (for active-low reset)
   \item Breadboard and jumper wires
   \item 5\,V DC power supply
   \item Function generator (1\,Hz square wave, CMOS output, for clock)
@@ -84,14 +87,17 @@ We used the following components and equipment:
 
 We first derived the 3-bit Gray code next-state table for the sequence
 $000 \to 001 \to 011 \to 010 \to 110 \to 111 \to 101 \to 100 \to 000$.
-Since DFF characteristic equation is $Q^* = D$, the D inputs equal the desired next
-states directly.  We filled in three Karnaugh maps to obtain minimized SOP expressions
-for $D_2$, $D_1$, and $D_0$, then converted them to NAND-NAND form for implementation.
-The $\overline{Q}$ outputs of the 74LS74 supplied all required complemented state signals,
-eliminating the need for a separate inverter IC.  After confirming the design with the
-TA, we wired the circuit on the breadboard, connected a 1\,Hz clock from the function
-generator, and verified correct operation using the LED outputs.  In the extension, we
-replaced the LEDs with the 74LS47N and 7-segment display.
+Since the DFF characteristic equation is $Q^* = D$, the D inputs equal the desired
+next states directly.  We filled in three Karnaugh maps to obtain minimized SOP
+expressions for $D_2$, $D_1$, and $D_0$.  The SN74LS109AN is a JK flip-flop with a
+$\overline{K}$ input; connecting $J = D$ and $\overline{K} = D$ configures it as a DFF.
+Its $\overline{Q}$ outputs supply all complemented state signals needed by the
+combinational logic.  The simplified equations were implemented using AND gates
+(SN74LS08N) and XOR gates (SN74LS86AN), with the SN74LS04N providing the single
+inversion required for $D_0$.  After confirming the design with the TA, we wired the
+circuit on the breadboard, connected a 1\,Hz clock from the function generator, and
+verified correct operation using the LED outputs.  In the extension, we replaced the
+LEDs with the SN74LS47N and 7-segment display.
 
 % ─────────────────────────────────────────────
 \section{Results}
