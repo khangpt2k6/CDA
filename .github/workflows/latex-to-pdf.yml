@@ -8,27 +8,50 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-lab6:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Compile LaTeX to PDF
+      - name: Compile Lab 6 LaTeX to PDF
         uses: xu-cheng/latex-action@v3
         with:
           root_file: cda_lab6_report.tex
           working_directory: cda_lab6
 
-      - name: Commit and push PDF
+      - name: Commit and push Lab 6 PDF
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          ls -la cda_lab6/*.pdf 2>/dev/null || echo "No PDF files found"
           git add -f cda_lab6/cda_lab6_report.pdf
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
             git commit -m "Auto-generate PDF from LaTeX (Lab 6)"
+            git push
+          fi
+
+  build-lab7:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile Lab 7 LaTeX to PDF
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: cda_lab7.tex
+          working_directory: cda_LAB7
+
+      - name: Commit and push Lab 7 PDF
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f cda_LAB7/cda_lab7.pdf
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-generate PDF from LaTeX (Lab 7)"
             git push
           fi
