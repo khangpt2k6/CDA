@@ -18,16 +18,16 @@ jobs:
         uses: xu-cheng/latex-action@v3
         with:
           root_file: cda_lab8.tex
-          working_directory: cda_LAB8
+          working_directory: cda_lab8
 
       - name: Commit and push PDFs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f cda_LAB7/cda_lab7.pdf
+          git add -f cda_lab8/cda_lab8.pdf
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Auto-generate PDFs from LaTeX (Lab 7)"
+            git commit -m "Auto-generate Lab 8 PDF from LaTeX"
             git push
           fi
