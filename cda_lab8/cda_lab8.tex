@@ -7,6 +7,7 @@
 \usepackage{multirow}
 \usepackage[font={small,it}, justification=centering, labelfont=bf]{caption}
 \usepackage{float}
+\usepackage{needspace}
 \usepackage[skip=4pt]{parskip}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
@@ -132,9 +133,6 @@ detected.''  We assume the slot never reports both at once, so $N{=}D{=}1$ is a
     (s3) at (-126:2.8cm){$15$\,c};
   \node[state]
     (s4) at (162:2.8cm) {$20$\,c};
-
-  % Self-loops on no coin (implicit in Moore formulation) omitted for clarity;
-  % transitions labeled with (N), (D), or both outcomes
 
   \path (s0) edge [loop above] node[above, font=\scriptsize] {$\overline{N}\,\overline{D}$} (s0)
         (s0) edge [bend left=12] node[right, font=\scriptsize] {$N$} (s1)
@@ -418,40 +416,46 @@ the 7-segment and LED loads.  After freezing the state assignment and equations 
 presented Figures~\ref{fig:block} and~\ref{fig:schematic} to the TA and proceeded only after
 approval.
 
+\Needspace{11\baselineskip}
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[>=Stealth, thick,
-    block/.style={draw, rounded corners, minimum width=3.0cm, minimum height=1.05cm, align=center},
+    block/.style={draw, rounded corners, minimum width=2.95cm, minimum height=1.02cm, align=center},
     line/.style={->},
-    clkbox/.style={draw, rounded corners, minimum width=1.35cm, minimum height=0.58cm,
+    clkbox/.style={draw, rounded corners, minimum width=1.32cm, minimum height=0.55cm,
                    font=\small, align=center}]
 
   \node[block] (in) {Inputs\\$N$, $D$};
-  \node[block, right=1.35cm of in] (ns) {Next-state\\logic (NAND--NAND)};
-  \node[block, right=1.35cm of ns] (reg) {State register\\3 FFs + $\overline{\text{CLR}}$};
-  \node[block, below=1.15cm of reg] (out) {Output logic\\\textit{Vend} (NAND--NAND)};
-  \node[block, left=1.45cm of out] (seg) {7448 +\\7-segment};
-  \node[clkbox, above=0.5cm of reg] (clk) {0.5\,Hz\\CLK};
+  \node[block, right=1.25cm of in] (ns) {Next-state\\logic (NAND--NAND)};
+  \node[block, right=1.25cm of ns] (reg) {State register\\3 FFs + $\overline{\text{CLR}}$};
+  \node[block, below=1.05cm of reg, xshift=0.85cm] (out) {Output logic\\\textit{Vend} (NAND--NAND)};
+  \node[block, below=1.05cm of reg, xshift=-0.85cm] (seg) {7448 +\\7-segment};
+  \node[clkbox, above=0.48cm of reg] (clk) {0.5\,Hz\\CLK};
 
   \draw[line] (in) -- (ns);
-  \draw[line] (ns) -- node[above, font=\small] {$Y_2Y_1Y_0$} (reg);
+  \draw[line] (ns) -- node[above, font=\small, inner sep=2pt] {$Y_2Y_1Y_0$} (reg);
   \draw[line] (clk.south) -- (reg.north);
 
-  % Fan out present state below the register (clock no longer shares reg.south anchor).
-  \coordinate (fanout) at ($(reg.south)+(0,-0.42)$);
-  \draw[line] (reg.south) -- node[anchor=west, font=\small, xshift=2pt] {$y_2y_1y_0$} (fanout);
-  \draw[line] (fanout) -| (out.east);
-  \draw[line] (fanout) -| (seg.east);
+  % Present state: trunk then symmetric branches to 7-segment (left) and Vend (right).
+  \coordinate (fanout) at ($(reg.south)+(0,-0.38)$);
+  \draw[line] (reg.south)
+        -- node[fill=white, inner sep=1pt, font=\small, pos=0.45, anchor=west, xshift=-1pt] {$y_2y_1y_0$}
+        (fanout);
+  \draw[line] (fanout) -| (seg.north);
+  \draw[line] (fanout) -| (out.north);
 
+  % Dashed feedback: dip under the top row, label matches course diagram.
   \draw[dashed, ->, shorten >=1.5pt, shorten <=1.5pt]
-       (reg.west) to[out=165,in=25]
-       node[above, font=\scriptsize, pos=0.42, sloped] {feedback}
-       (ns.east);
+       (reg.west) to[out=210,in=330, looseness=1.35]
+       node[pos=0.48, below, font=\scriptsize, yshift=-0.14cm, inner sep=1pt,
+            fill=white, align=center] {feedback\\$y_2y_1y_0$}
+       (ns.south east);
 
 \end{tikzpicture}
-\caption{High-level block diagram for the vending FSM.  The demo clock enters the state
-register from above; present state fans out to output logic, the 7-segment decoder, and (dashed)
-back to next-state logic.  Reset and power distribution are omitted for clarity.}
+\caption{High-level block diagram for the vending FSM.  Inputs $N,D$ and registered state drive
+next-state logic; $Y_2Y_1Y_0$ loads the flip-flops on the clock from \texttt{0.5\,Hz CLK}.
+Present state $y_2y_1y_0$ feeds the 7448/7-segment path, \textit{Vend} logic, and the dashed
+feedback into next-state logic.  Reset and power distribution are omitted for clarity.}
 \label{fig:block}
 \end{figure}
 
