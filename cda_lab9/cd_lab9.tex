@@ -11,6 +11,7 @@
 \hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{needspace}
 \usepackage{titlesec}
 \titlespacing*{\section}{0pt}{8pt}{4pt}
 \titlespacing*{\subsection}{0pt}{6pt}{2pt}
@@ -89,6 +90,8 @@ not advance during reset because the increment logic never runs a normal update 
 the divided clock, which matches the lab observation that holding the button keeps the
 display from counting until you let go.
 
+% Keep the code listing on one page (avoid a broken frame at the page break).
+\Needspace{22\baselineskip}
 \begin{lstlisting}[caption={Excerpt: synchronous active-high reset (lab handout).}]
 always @ (posedge clk) begin
   if (rst == 1'b1) begin

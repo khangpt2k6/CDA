@@ -11,7 +11,7 @@
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
 \usepackage{tikz}
-\usetikzlibrary{automata, positioning, arrows.meta}
+\usetikzlibrary{automata, positioning, arrows.meta, calc}
 \usepackage{titlesec}
 \titlespacing*{\section}{0pt}{8pt}{4pt}
 \titlespacing*{\subsection}{0pt}{6pt}{2pt}
@@ -420,25 +420,38 @@ approval.
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[>=Stealth, thick, block/.style={draw, rounded corners, minimum width=3.2cm,
-    minimum height=1.1cm, align=center}, line/.style={->}]
+\begin{tikzpicture}[>=Stealth, thick,
+    block/.style={draw, rounded corners, minimum width=3.0cm, minimum height=1.05cm, align=center},
+    line/.style={->},
+    clkbox/.style={draw, rounded corners, minimum width=1.35cm, minimum height=0.58cm,
+                   font=\small, align=center}]
 
   \node[block] (in) {Inputs\\$N$, $D$};
-  \node[block, right=1.6cm of in] (ns) {Next-state\\logic (NAND--NAND)};
-  \node[block, right=1.6cm of ns] (reg) {State register\\3 FFs + $\overline{\text{CLR}}$};
-  \node[block, below=1.2cm of reg] (out) {Output logic\\\textit{Vend} (NAND--NAND)};
-  \node[block, left=1.6cm of out] (seg) {7448 +\\7-segment};
-  \node[font=\small, below=0.35cm of reg] (clk) {CLK (0.5\,Hz)};
+  \node[block, right=1.35cm of in] (ns) {Next-state\\logic (NAND--NAND)};
+  \node[block, right=1.35cm of ns] (reg) {State register\\3 FFs + $\overline{\text{CLR}}$};
+  \node[block, below=1.15cm of reg] (out) {Output logic\\\textit{Vend} (NAND--NAND)};
+  \node[block, left=1.45cm of out] (seg) {7448 +\\7-segment};
+  \node[clkbox, above=0.5cm of reg] (clk) {0.5\,Hz\\CLK};
 
-  \draw[line] (in) -- node[above, font=\small] {} (ns);
+  \draw[line] (in) -- (ns);
   \draw[line] (ns) -- node[above, font=\small] {$Y_2Y_1Y_0$} (reg);
-  \draw[line] (reg.south) |- node[above left, font=\small, pos=0.25] {$y_2y_1y_0$} (out.east);
-  \draw[line] (reg.south) |- (seg.east);
-  \draw[line] (clk) -- (reg.south);
+  \draw[line] (clk.south) -- (reg.north);
+
+  % Fan out present state below the register (clock no longer shares reg.south anchor).
+  \coordinate (fanout) at ($(reg.south)+(0,-0.42)$);
+  \draw[line] (reg.south) -- node[anchor=west, font=\small, xshift=2pt] {$y_2y_1y_0$} (fanout);
+  \draw[line] (fanout) -| (out.east);
+  \draw[line] (fanout) -| (seg.east);
+
+  \draw[dashed, ->, shorten >=1.5pt, shorten <=1.5pt]
+       (reg.west) to[out=165,in=25]
+       node[above, font=\scriptsize, pos=0.42, sloped] {feedback}
+       (ns.east);
 
 \end{tikzpicture}
-\caption{High-level block diagram for the vending FSM.  Clock (0.5\,Hz demo) connects to all
-flip-flops; reset and power distribution are omitted for clarity.}
+\caption{High-level block diagram for the vending FSM.  The demo clock enters the state
+register from above; present state fans out to output logic, the 7-segment decoder, and (dashed)
+back to next-state logic.  Reset and power distribution are omitted for clarity.}
 \label{fig:block}
 \end{figure}
 
