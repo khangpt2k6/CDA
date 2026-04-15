@@ -14,11 +14,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Compile Lab 7 LaTeX to PDF
+      - name: Compile Lab 8 LaTeX to PDF
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: cda_lab7.tex
-          working_directory: cda_LAB7
+          root_file: cda_lab8.tex
+          working_directory: cda_LAB8
 
       - name: Commit and push PDFs
         run: |
