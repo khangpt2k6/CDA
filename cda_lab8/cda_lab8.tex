@@ -56,12 +56,13 @@ We used the following components and equipment (exact IC mix depends on the chos
 type after comparing D vs.\ JK realizations):
 
 \begin{itemize}
-  \item Flip-flop IC(s) for state registers (e.g.\ SN74LS74 dual D-type, or SN74LS109 dual JK
-        configured as D if needed)
-  \item Combinational logic ICs as required by the minimized equations (e.g.\ SN74LS00 quad
-        NAND, SN74LS04 hex inverter, additional NAND/AND packages for NAND--NAND form)
-  \item SN74LS47N BCD-to-7-segment decoder/driver and common-anode 7-segment display (current
-        limiting resistors on segment lines)
+  \item Two SN74LS112A (or SN74HC112) dual negative-edge-triggered JK flip-flop ICs---three
+        flip-flops for state bits $y_2,y_1,y_0$, with asynchronous $\overline{\text{CLR}}$ /
+        $\overline{\text{PRE}}$ per datasheet
+  \item SN74LS00N quad 2-input NAND and SN74LS10N triple 3-input NAND for next-state and
+        output logic in NAND--NAND form
+  \item SN7448 / SN74LS48 BCD-to-7-segment decoder/driver and matching 7-segment display
+        (segment resistors as required by display type)
   \item One LED and resistor for the \textit{vend} output
   \item Tactile switches or debounced inputs to emulate $N$ and $D$ (with pull-up or pull-down
         resistors as appropriate for active-high or active-low sensing)
@@ -74,8 +75,8 @@ type after comparing D vs.\ JK realizations):
 We derived the state diagram and state table from the word specification, checked for
 redundant states, chose a state assignment, minimized next-state and output logic (exploiting
 don't-cares where valid), compared D vs.\ JK flip-flop realizations to minimize package count,
-converted two-level SOP to NAND--NAND where required, drew a block diagram with IC pin-level
-intent, and obtained TA approval before wiring.  After breadboarding, we verified transitions
+converted two-level SOP to NAND--NAND where required, captured the full gate-level design in a
+logic simulator, and obtained TA approval before wiring.  After breadboarding, we verified transitions
 under the slow clock and demonstrated operation to the TA.
 
 % ─────────────────────────────────────────────
@@ -198,7 +199,7 @@ assignment maps the credit in nickels ($0\ldots 4$) to binary:
 
 Unused code $101,110,111$ are don't-cares for logic minimization if the FSM is guaranteed to
 reset into 000.  The 7-segment display can be driven by treating $(y_2,y_1,y_0)$ as a BCD value
-$0\ldots 4$ with $D_{\text{MSB}}$ tied low on the SN74LS47N (same hookup style as prior labs),
+$0\ldots 4$ with $D_{\text{MSB}}$ tied low on the SN7448 (same style as prior labs' decoder hookup),
 so the display shows the state's ``nickel count'' $0$--$4$.
 
 \medskip
@@ -226,18 +227,18 @@ then minimized and NAND--NANDed.  Tie the vend LED through a current-limiting re
         used to emulate the coin sensors.
   \item Active-low asynchronous $\overline{\text{CLR}}$ on all flip-flops tied to a reset
         button (pull-up to $V_{DD}$), with $\overline{\text{PRE}}$ disabled per datasheet.
-  \item SN74LS47N (or agreed variant) plus common-anode display showing the encoded state
-        $0\ldots 4$.
+  \item SN7448 (or lab-equivalent BCD-to-7-segment IC) plus 7-segment display showing the
+        encoded state $0\ldots 4$.
   \item One LED showing the \textit{vend} condition.
 \end{itemize}
 
 \subsection{Block Diagram, NAND--NAND, and TA Sign-Off (Lab Question 4)}
 
-Figure~\ref{fig:block} is a representative block diagram: registers (three FFs), next-state
-logic block, output logic for \textit{Vend}, and display decoder.  Replace generic labels
-with your final chip list and pin-level nets after minimization.  For every two-level SOP
-network, duplicate De Morgan with NANDs for NAND--NAND realization.  Attach a copy of the
-TA-approved schematic in your submission package if required by your section.
+Figure~\ref{fig:block} summarizes the architecture: registers (three JK flip-flops), NAND
+next-state logic, output logic for the vend indication, and the BCD-to-7-segment decoder.
+Figure~\ref{fig:schematic} shows our complete gate-level schematic as captured from the logic
+design tool; the breadboard was wired to match this netlist.  For every two-level SOP
+network, we used NAND--NAND (7400/7410) realization.
 
 \begin{figure}[H]
 \centering
@@ -248,7 +249,7 @@ TA-approved schematic in your submission package if required by your section.
   \node[block, right=1.6cm of in] (ns) {Next-state\\logic (NAND--NAND)};
   \node[block, right=1.6cm of ns] (reg) {State register\\3 FFs + $\overline{\text{CLR}}$};
   \node[block, below=1.2cm of reg] (out) {Output logic\\\textit{Vend} (NAND--NAND)};
-  \node[block, left=1.6cm of out] (seg) {74LS47 +\\7-segment};
+  \node[block, left=1.6cm of out] (seg) {7448 +\\7-segment};
 
   \draw[line] (in) -- node[above, font=\small] {} (ns);
   \draw[line] (ns) -- node[above, font=\small] {$Y_2Y_1Y_0$} (reg);
@@ -261,6 +262,19 @@ flip-flops; reset and power distribution are omitted for clarity.}
 \label{fig:block}
 \end{figure}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{verilog_circuit.jpg}
+\caption{Complete gate-level schematic of the vending FSM (simulator capture).  Two
+SN74112-style dual JK devices hold state bits $y_2,y_1,y_0$; SN7400 quad 2-input NAND and
+SN7410 triple 3-input NAND gates implement the minimized excitation and output logic (including
+partial next-state expressions as annotated in the drawing).  Inputs $N$ and
+$D$ represent nickel and dime sensors; clock and asynchronous clear/preset match the lab
+interface.  SN7448 drives the 7-segment display for the current state, and output $Z$ drives
+the vend LED.}
+\label{fig:schematic}
+\end{figure}
+
 \subsection{Experimental Procedure and Observations}
 
 Following the lab handout, we configured the function generator for a 0.5\,Hz CMOS square
@@ -268,15 +282,8 @@ wave as the clock, wired the approved design on the breadboard, and stepped thro
 representative coin sequences (e.g.\ nickel sequences to 25\,cents, dime shortcuts, and
 over-threshold cases that still vend with no change returned).  We verified that the display
 tracks the credited total in the agreed encoding and that the vend LED asserts only on valid
-25\,cents events.
-
-\begin{figure}[H]
-\centering
-\fbox{\parbox[c][4.2cm][c]{0.72\linewidth}{\centering
-\small (Replace with photo of your breadboard: FFs, NAND logic, 7-segment, vend LED, clock,
-reset, and $N$/$D$ switches.)}}
-\caption{Breadboard implementation of the vending machine controller (placeholder).}
-\end{figure}
+25\,cents events.  The breadboard was wired to match Figure~\ref{fig:schematic}.  If required,
+add a separate photograph of the assembled hardware alongside that figure.
 
 % Optional: uncomment when you export screenshots from your HDL/simulation tool
 % \begin{figure}[H]
@@ -292,7 +299,7 @@ The five-state credit model matches the specification that only multiples of fiv
 cents are inserted and that vending occurs exactly at 25\,cents with no change.  Treating
 $ND{=}11$ as a don't-care reflects a single-slot sensor assumption and simplifies logic.
 Displaying state as $0$--$4$ ``nickel units'' keeps the 7-segment interface simple with a
-single SN74LS47N digit.
+single 7448-driven digit.
 
 Comparing D and JK realizations is problem-dependent: DFFs give $D_i = Y_i$ directly, while JK
 maps may merge $J$ and $K$ terms across bits.  The winner is whichever meets timing with the
