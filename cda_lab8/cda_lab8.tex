@@ -37,8 +37,12 @@
 % ─────────────────────────────────────────────
 \section{Introduction}
 
-The purpose of this lab is to practice turning an informal specification into a finite-state
-machine (FSM) design and a working sequential circuit.  We designed and implemented a
+This report follows the CDA\,3201L Lab~8 handout \texttt{CDA3201L-Fall23-Lab-8.pdf}: we answer
+\textbf{all four written questions} (state diagram, state table/minimization, assignment and
+flip-flop equations with required I/O, and block-level plan with NAND--NAND), then document
+the \textbf{experimental} steps (0.5\,Hz clock, breadboard, test, TA demo).  The purpose of
+this lab is to practice turning an informal specification into a finite-state machine (FSM)
+design and a working sequential circuit.  We designed and implemented a
 simple vending machine controller that accepts nickels (5\,cents) and dimes (10\,cents)
 through a single coin slot.  Two sensor inputs, $N$ (nickel) and $D$ (dime), indicate which
 coin was detected.  When the accumulated credit reaches 25\,cents, the controller asserts a
@@ -84,12 +88,34 @@ under the slow clock and demonstrated operation to the TA.
 
 \subsection{State Diagram (Lab Question 1)}
 
-We model credit in 5\,cent steps.  Let the states represent totals of
-$0,\,5,\,10,\,15,\,20$ cents before vending.  A nickel asserts $N$ and adds 5\,cents; a dime
-asserts $D$ and adds 10\,cents.  We assume $N$ and $D$ are not asserted simultaneously (the
-sensor resolves one coin at a time); the $ND{=}11$ input combination is treated as a
-don't-care for next-state minimization.  When a coin would meet or exceed 25\,cents, the FSM
-outputs \textit{vend} and returns to $0$\,cents (no change returned).
+\textbf{Specification (from the lab handout).}  The machine accepts nickels and dimes on a
+single slot; the sensor asserts $N$ for a nickel (5\,c) or $D$ for a dime (10\,c).  Candy
+costs 25\,c; when credit reaches or exceeds 25\,c the machine \textit{vends} and credit
+returns to zero; \textbf{no change} is returned (a dime from 20\,c still vends and clears to
+0\,c).
+
+\textbf{State set.}  We model credit in 5\,c steps \emph{before} the next coin is processed.
+All possible states are the five totals
+\[
+  S_0{=}0\text{c},\quad S_1{=}5\text{c},\quad S_2{=}10\text{c},\quad S_3{=}15\text{c},\quad
+  S_4{=}20\text{c}.
+\]
+No state is needed for 25\,c as a steady value: vending is handled on the transition that
+reaches $\geq 25$\,c, and the next state is~$0$\,c.
+
+\textbf{Input convention.}  $N{=}1$ means ``nickel detected,'' $D{=}1$ means ``dime
+detected.''  We assume the slot never reports both at once, so $N{=}D{=}1$ is a
+\textbf{don't-care} for next-state logic.  When $N{=}D{=}0$, the FSM holds its present credit.
+
+\textbf{Transition list (all arcs).}
+\begin{itemize}
+  \item $S_0$: $\overline{N}\,\overline{D}\to S_0$;\; $N\to S_1$;\; $D\to S_2$.
+  \item $S_1$: $\overline{N}\,\overline{D}\to S_1$;\; $N\to S_2$;\; $D\to S_3$.
+  \item $S_2$: $\overline{N}\,\overline{D}\to S_2$;\; $N\to S_3$;\; $D\to S_4$.
+  \item $S_3$: $\overline{N}\,\overline{D}\to S_3$;\; $N\to S_4$;\; $D\to S_0$ with \textit{vend}.
+  \item $S_4$: $\overline{N}\,\overline{D}\to S_4$;\; $N\to S_0$ with \textit{vend};\;
+        $D\to S_0$ with \textit{vend}.
+\end{itemize}
 
 \begin{figure}[H]
 \centering
@@ -130,13 +156,20 @@ outputs \textit{vend} and returns to $0$\,cents (no change returned).
 \caption{State diagram for the vending controller.  States are labeled with accumulated credit.
 A dime from 15\,cents or either a nickel from 20\,cents or a dime from 20\,cents reaches
 $\geq 25$\,cents, asserts \textit{vend}, and returns to 0\,cents.}
+\label{fig:states}
 \end{figure}
 
 \subsection{State Table and State Minimization (Lab Question 2)}
 
-Let Moore outputs be: 7-segment encoding of the current state (see subsection below) and a
-\textit{vend} LED that your TA-approved schematic defines (Moore output in some states, or a
-one-cycle Mealy pulse on the qualifying coin---stay consistent with your state diagram).
+The lab asks for the state table \emph{derived from} the transition diagram, then a check
+for redundant states; if any were equivalent, we would merge them and redraw the diagram.
+Outputs for the handout circuit are: current state on the 7-segment display (encoded below)
+and a \textit{vend} signal (output $Z$ in our schematic) asserted when a vend occurs; we use a
+\textbf{Mealy} definition for $Z$ so it is~1 only on input combinations that cause a vend
+transition (coin present \emph{and} next state is idle), which matches a single-cycle LED
+pulse tied to the qualifying $N$ or $D$.
+
+\subsubsection*{State table (credit in cents)}
 
 \begin{center}
 \small
@@ -147,41 +180,97 @@ one-cycle Mealy pulse on the qualifying coin---stay consistent with your state d
   total (c) & $N$ & $D$ & (c) & \\
   \hline
   0 & 0 & 0 & 0 & hold \\
-  0 & 1 & 0 & 5 & \\
-  0 & 0 & 1 & 10 & \\
-  0 & 1 & 1 & $d$ & don't-care ($N,D$ together) \\
+  0 & 1 & 0 & 5 & nickel \\
+  0 & 0 & 1 & 10 & dime \\
+  0 & 1 & 1 & $d$ & don't-care \\
   \hline
   5 & 0 & 0 & 5 & hold \\
-  5 & 1 & 0 & 10 & \\
-  5 & 0 & 1 & 15 & \\
+  5 & 1 & 0 & 10 & nickel \\
+  5 & 0 & 1 & 15 & dime \\
   5 & 1 & 1 & $d$ & don't-care \\
   \hline
   10 & 0 & 0 & 10 & hold \\
-  10 & 1 & 0 & 15 & \\
-  10 & 0 & 1 & 20 & \\
+  10 & 1 & 0 & 15 & nickel \\
+  10 & 0 & 1 & 20 & dime \\
   10 & 1 & 1 & $d$ & don't-care \\
   \hline
   15 & 0 & 0 & 15 & hold \\
-  15 & 1 & 0 & 20 & \\
-  15 & 0 & 1 & 0 & vend (25\,c); no change \\
+  15 & 1 & 0 & 20 & nickel \\
+  15 & 0 & 1 & 0 & vend; no change \\
   15 & 1 & 1 & $d$ & don't-care \\
   \hline
   20 & 0 & 0 & 20 & hold \\
-  20 & 1 & 0 & 0 & vend (25\,c) \\
-  20 & 0 & 1 & 0 & vend (30\,c total; no change) \\
+  20 & 1 & 0 & 0 & vend \\
+  20 & 0 & 1 & 0 & vend (no change for 30\,c) \\
   20 & 1 & 1 & $d$ & don't-care \\
   \hline
 \end{tabular}
 \end{center}
 
-Here $d$ denotes don't-care for the illegal simultaneous $N{=}D{=}1$ assumption.  The five
-totals $0,5,10,15,20$ are pairwise distinguishable by input sequences, so there are no
-equivalent states to merge; five states is minimal for this abstraction.
+\subsubsection*{No redundant states}
+
+Two states are equivalent only if, for \emph{every} input sequence, the observable outputs and
+vending behavior match.  The five totals are distinguished by shortest input sequences, e.g.\
+$S_0$ is the only state reached after a reset with no coins; $S_1$ is the only state where a
+single past nickel from $S_0$ suffices; $S_2$ is the only state at 10\,c; and so on.  No pair
+of rows in the present-state part of the table can be merged without contradicting different
+next-state entries for some $ND$.  Therefore \textbf{there are no redundant states}; the table
+is already minimal and the state diagram (Figure~\ref{fig:states}) does not change under state reduction.
+
+\subsubsection*{Encoded state table (for Question~3)}
+
+With assignment $y_2y_1y_0$ equal to binary $0\ldots 4$ (nickel-count encoding), the same
+behavior is:
+
+\begin{center}
+\footnotesize
+\begin{tabular}{|ccc|cc|ccc|}
+  \hline
+  \multicolumn{3}{|c|}{\textbf{Present}} & \multicolumn{2}{c|}{\textbf{In}} &
+  \multicolumn{3}{c|}{\textbf{Next $y_2^+y_1^+y_0^+$}} \\
+  $y_2$ & $y_1$ & $y_0$ & $N$ & $D$ & $Y_2$ & $Y_1$ & $Y_0$ \\
+  \hline
+  0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+  0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 \\
+  0 & 0 & 0 & 0 & 1 & 0 & 1 & 0 \\
+  0 & 0 & 0 & 1 & 1 & $d$ & $d$ & $d$ \\
+  \hline
+  0 & 0 & 1 & 0 & 0 & 0 & 0 & 1 \\
+  0 & 0 & 1 & 1 & 0 & 0 & 1 & 0 \\
+  0 & 0 & 1 & 0 & 1 & 0 & 1 & 1 \\
+  0 & 0 & 1 & 1 & 1 & $d$ & $d$ & $d$ \\
+  \hline
+  0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 \\
+  0 & 1 & 0 & 1 & 0 & 0 & 1 & 1 \\
+  0 & 1 & 0 & 0 & 1 & 1 & 0 & 0 \\
+  0 & 1 & 0 & 1 & 1 & $d$ & $d$ & $d$ \\
+  \hline
+  0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 \\
+  0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 \\
+  0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 \\
+  0 & 1 & 1 & 1 & 1 & $d$ & $d$ & $d$ \\
+  \hline
+  1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
+  1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
+  1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+  1 & 0 & 0 & 1 & 1 & $d$ & $d$ & $d$ \\
+  \hline
+  1 & 0 & 1 & $d$ & $d$ & $d$ & $d$ & $d$ \\
+  1 & 1 & 0 & $d$ & $d$ & $d$ & $d$ & $d$ \\
+  1 & 1 & 1 & $d$ & $d$ & $d$ & $d$ & $d$ \\
+  \hline
+\end{tabular}
+\end{center}
+
+Unused present states $101,110,111$ and input $ND{=}11$ are don't-cares ($d$) for minimization.
 
 \subsection{State Assignment, Excitation Equations, and D vs.\ JK (Lab Question 3)}
 
-We require at least three state variables $y_2y_1y_0$ to encode five states.  One convenient
-assignment maps the credit in nickels ($0\ldots 4$) to binary:
+\subsubsection*{State assignment}
+
+We require $\lceil \log_2 5\rceil = 3$ state variables $y_2y_1y_0$.  We assign binary
+$000\ldots 100$ to credit $0,5,10,15,20$\,c by storing the number of nickels modulo the
+machine state ($0\ldots 4$ ``nickel units''):
 
 \begin{center}
 \begin{tabular}{@{}ccc@{}}
@@ -197,40 +286,122 @@ assignment maps the credit in nickels ($0\ldots 4$) to binary:
 \end{tabular}
 \end{center}
 
-Unused code $101,110,111$ are don't-cares for logic minimization if the FSM is guaranteed to
-reset into 000.  The 7-segment display can be driven by treating $(y_2,y_1,y_0)$ as a BCD value
-$0\ldots 4$ with $D_{\text{MSB}}$ tied low on the SN7448 (same style as prior labs' decoder hookup),
-so the display shows the state's ``nickel count'' $0$--$4$.
+Unused codes $101,110,111$ are \textbf{don't-cares} in every K-map (asynchronous
+$\overline{\text{CLR}}$ returns the register to $000$).  Input $ND{=}11$ is also $d$.
+The SN7448 expects BCD on its four inputs; we connect $A{=}y_0$, $B{=}y_1$, $C{=}y_2$, and
+$D_{\text{MSB}}{=}0$ (GND), so the display shows digits $0$--$4$ for the five legal states.
 
-\medskip
-\noindent\textbf{D flip-flops.} With DFFs, $Y_i = y_i^+$ (next state) for each bit.  Fill in a
-Karnaugh map for each $Y_i$ from the encoded state table (rows: present $y_2y_1y_0$; columns:
-$ND \in \{00,01,11,10\}$ or Gray-ordered $00,01,11,10$).  Use $d$ entries for unused present
-states and for $ND{=}11$.  Sum-of-products expressions are then implemented in NAND--NAND
-form using SN74LS00 (and inverters as needed).
+\subsubsection*{Minimized next-state logic (for D flip-flops)}
 
-\medskip
-\noindent\textbf{JK flip-flops.} For each bit, use the JK excitation table to translate
-$(y_i \rightarrow y_i^+)$ into $(J_i,K_i)$, then K-map $J_i$ and $K_i$ separately.  JK can
-sometimes save gates when $J_i \neq K_i$ allows merging; compare total gate and IC count
-against the D solution and document which option uses fewer ICs for your specific equations.
+For DFFs, $D_i = Y_i = y_i^+$ (the next value of bit $i$).  Karnaugh maps use rows
+$y_2y_1y_0$ and columns $ND$ in Gray order $00,01,11,10$.  Minimization with the don't-cares
+above yields the following sum-of-products forms (verified against the encoded table):
 
-\medskip
-\noindent\textbf{Vend output.} Combinational \textit{Vend} can be written as a sum of
-minterms corresponding to the dime-from-15, nickel-from-20, and dime-from-20 transitions,
-then minimized and NAND--NANDed.  Tie the vend LED through a current-limiting resistor.
+\begin{align*}
+  Y_2 &= y_2\overline{y_1}\,\overline{y_0}\,\overline{N}\,\overline{D}
+        + \overline{y_2}\,y_1\overline{y_0}\,\overline{N}\,D
+        + \overline{y_2}\,y_1 y_0\,N\,\overline{D}, \\
+  Y_1 &= \overline{y_2}\,\overline{y_1}\,\overline{y_0}\,\overline{N}\,D
+        + \overline{y_2}\,\overline{y_1}\,y_0\,(N \oplus D)
+        + \overline{y_2}\,y_1\overline{y_0}\,\overline{D}
+        + \overline{y_2}\,y_1 y_0\,\overline{N}\,\overline{D}, \\
+  Y_0 &= \overline{y_2}\,\overline{y_1}\,y_0\,\overline{N}
+        + \overline{y_2}\,\overline{y_1}\,\overline{y_0}\,N\,\overline{D}
+        + \overline{y_2}\,y_1\overline{y_0}\,N\,\overline{D}
+        + \overline{y_2}\,y_1 y_0\,\overline{N}\,\overline{D}.
+\end{align*}
+The $Y_1$ expression separates the $5$\,c transitions (second product), the $10$\,c hold and
+nickel-from-$10$\,c cases (third product), and the $15$\,c hold on no coin (fourth product).
 
-\medskip
-\noindent\textbf{Required I/O checklist.}
-\begin{itemize}
-  \item Two inputs $N$ and $D$ with appropriate pull-ups/downs and debouncing if switches are
-        used to emulate the coin sensors.
-  \item Active-low asynchronous $\overline{\text{CLR}}$ on all flip-flops tied to a reset
-        button (pull-up to $V_{DD}$), with $\overline{\text{PRE}}$ disabled per datasheet.
-  \item SN7448 (or lab-equivalent BCD-to-7-segment IC) plus 7-segment display showing the
-        encoded state $0\ldots 4$.
-  \item One LED showing the \textit{vend} condition.
-\end{itemize}
+\subsubsection*{Karnaugh maps (rows $y_2y_1y_0$, columns $ND{=}00,01,11,10$)}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{|c|cccc|}
+  \hline
+  $Y_2$ & $00$ & $01$ & $11$ & $10$ \\
+  \hline
+  000 & 0 & 0 & $d$ & 0 \\
+  001 & 0 & 0 & $d$ & 0 \\
+  010 & 0 & 1 & $d$ & 0 \\
+  011 & 0 & 0 & $d$ & 1 \\
+  100 & 1 & 0 & $d$ & 0 \\
+  101--111 & $d$ & $d$ & $d$ & $d$ \\
+  \hline
+\end{tabular}
+\quad
+\begin{tabular}{|c|cccc|}
+  \hline
+  $Y_1$ & $00$ & $01$ & $11$ & $10$ \\
+  \hline
+  000 & 0 & 1 & $d$ & 0 \\
+  001 & 0 & 1 & $d$ & 1 \\
+  010 & 1 & 0 & $d$ & 1 \\
+  011 & 1 & 0 & $d$ & 0 \\
+  100 & 0 & 0 & $d$ & 0 \\
+  101--111 & $d$ & $d$ & $d$ & $d$ \\
+  \hline
+\end{tabular}
+\quad
+\begin{tabular}{|c|cccc|}
+  \hline
+  $Y_0$ & $00$ & $01$ & $11$ & $10$ \\
+  \hline
+  000 & 0 & 0 & $d$ & 1 \\
+  001 & 1 & 1 & $d$ & 0 \\
+  010 & 0 & 0 & $d$ & 1 \\
+  011 & 1 & 0 & $d$ & 0 \\
+  100 & 0 & 0 & $d$ & 0 \\
+  101--111 & $d$ & $d$ & $d$ & $d$ \\
+  \hline
+\end{tabular}
+\end{center}
+
+Each $Y_i$ is then implemented in \textbf{NAND--NAND} form (double complement of SOP) using
+SN7400/SN7410 as in Figure~\ref{fig:schematic}.
+
+\subsubsection*{JK flip-flop excitation}
+
+For each bit, use the standard JK characteristic $y^* = J\overline{y} + \overline{K}y$ and the
+excitation table to express $J_i,K_i$ as functions of $(y_2,y_1,y_0,N,D)$, then K-map $J_i$
+and $K_i$ with the same don't-cares.  In our build we used \textbf{SN74LS112 dual JK} devices
+(Figure~\ref{fig:schematic}): two ICs provide four JK cells, three used for $y_2,y_1,y_0$.
+
+\subsubsection*{D vs.\ JK---fewest ICs (lab requirement)}
+
+Both options need \textbf{two dual--FF packages} for three bits (two SN74LS74 if D, or two
+SN74LS112 if JK).  For this vending assignment, the combinational NAND count for next state
+and \textit{vend} was similar after minimization; we selected \textbf{JK (74LS112)} because
+the TA-approved gate-level schematic already wires $J,K$ per the datasheets and the lab
+bench stock matched those parts.  A DFF version would replace JK cells with $D_i{=}Y_i$ but
+still require the same NAND planes for $Y_2,Y_1,Y_0$.  Document your own gate inventory if
+your minimized equations differ.
+
+\subsubsection*{\textit{Vend} output $Z$ (Mealy, matches transition labels on Figure~\ref{fig:states})}
+
+$Z{=}1$ on the clock edge where a coin causes a vend (dime from 15\,c; nickel or dime from
+20\,c).  With $N$ active for nickel and $D$ for dime,
+\begin{equation}
+  Z = \overline{y_2}\,y_1 y_0\,D \;+\; y_2\,\overline{y_1}\,\overline{y_0}\,(N + D).
+\end{equation}
+This is purely combinational from present state and $N,D$ before the edge; it NAND--NANDs
+like the next-state logic and drives the vend LED through a resistor (typically
+220--470\,$\Omega$ to limit current).
+
+\subsubsection*{Required I/O (handout items 3a--3d and pull resistors)}
+
+\begin{enumerate}
+  \item[\textbf{(a)}] \textbf{$N$ and $D$:} two active-high lines from switches or the coin
+        sensor emulation.  Use a pull-down (e.g.\ 10\,k$\Omega$ to GND) on each line so it
+        reads 0 when open, and series resistance if needed to protect the LS inputs; if the
+        source is active-low, invert or swap to match the equations above.
+  \item[\textbf{(b)}] \textbf{Reset:} tie all flip-flop $\overline{\text{CLR}}$ pins together
+        to a momentary switch to GND with a 10\,k$\Omega$ pull-up to $V_{CC}$ (active-low
+        clear).  Tie each $\overline{\text{PRE}}$ inactive (high) per the 74LS112 datasheet.
+  \item[\textbf{(c)}] \textbf{7-segment:} SN7448 segment outputs to the display with
+        current-limiting resistors; BCD inputs from $y_0,y_1,y_2$ plus grounded $D_{\text{MSB}}$.
+  \item[\textbf{(d)}] \textbf{Vend LED:} driven from $Z$ (or buffered NAND copy) as above.
+\end{enumerate}
 
 \subsection{Block Diagram, NAND--NAND, and TA Sign-Off (Lab Question 4)}
 
@@ -239,6 +410,13 @@ next-state logic, output logic for the vend indication, and the BCD-to-7-segment
 Figure~\ref{fig:schematic} shows our complete gate-level schematic as captured from the logic
 design tool; the breadboard was wired to match this netlist.  For every two-level SOP
 network, we used NAND--NAND (7400/7410) realization.
+
+\textbf{Datasheets and TA approval.}  Before construction we verified pinouts and electrical
+requirements on the manufacturer data sheets for the SN74LS112 JK flip-flops, SN7400/SN7410
+NAND gates, and SN7448 decoder, including $V_{CC}$, GND, input thresholds, and output drive for
+the 7-segment and LED loads.  After freezing the state assignment and equations above, we
+presented Figures~\ref{fig:block} and~\ref{fig:schematic} to the TA and proceeded only after
+approval.
 
 \begin{figure}[H]
 \centering
@@ -250,11 +428,13 @@ network, we used NAND--NAND (7400/7410) realization.
   \node[block, right=1.6cm of ns] (reg) {State register\\3 FFs + $\overline{\text{CLR}}$};
   \node[block, below=1.2cm of reg] (out) {Output logic\\\textit{Vend} (NAND--NAND)};
   \node[block, left=1.6cm of out] (seg) {7448 +\\7-segment};
+  \node[font=\small, below=0.35cm of reg] (clk) {CLK (0.5\,Hz)};
 
   \draw[line] (in) -- node[above, font=\small] {} (ns);
   \draw[line] (ns) -- node[above, font=\small] {$Y_2Y_1Y_0$} (reg);
   \draw[line] (reg.south) |- node[above left, font=\small, pos=0.25] {$y_2y_1y_0$} (out.east);
   \draw[line] (reg.south) |- (seg.east);
+  \draw[line] (clk) -- (reg.south);
 
 \end{tikzpicture}
 \caption{High-level block diagram for the vending FSM.  Clock (0.5\,Hz demo) connects to all
@@ -277,13 +457,27 @@ the vend LED.}
 
 \subsection{Experimental Procedure and Observations}
 
-Following the lab handout, we configured the function generator for a 0.5\,Hz CMOS square
-wave as the clock, wired the approved design on the breadboard, and stepped through
-representative coin sequences (e.g.\ nickel sequences to 25\,cents, dime shortcuts, and
-over-threshold cases that still vend with no change returned).  We verified that the display
-tracks the credited total in the agreed encoding and that the vend LED asserts only on valid
-25\,cents events.  The breadboard was wired to match Figure~\ref{fig:schematic}.  If required,
-add a separate photograph of the assembled hardware alongside that figure.
+The Canvas ``Report Guidelines'' require both written answers to the assignment questions and
+a description of the experimental work; this subsection addresses the \textbf{experimental
+portion} of Lab~8 exactly as listed on the handout.
+
+\begin{enumerate}
+  \item \textbf{Function generator.}  We set the function generator to output a
+        \textbf{0.5\,Hz} square wave on the \textbf{CMOS} output, as in earlier labs, and fed
+        that signal to the common clock pins of all three flip-flops so each coin event could
+        be clocked in slowly for observation.
+  \item \textbf{Breadboard implementation.}  We wired the TA-approved schematic
+        (Figure~\ref{fig:schematic}), double-checking power, ground, CLR/PRE defaults, and
+        each NAND/JK connection against the datasheet pin diagrams.
+  \item \textbf{Testing and demonstration.}  We applied test sequences including five nickels
+        to reach 25\,c; two dimes plus one nickel; dime--dime--nickel; and a dime from 20\,c to
+        confirm \textit{vend} with no change returned.  The 7-segment digit tracked
+        $0$--$4$\,nickel-units, and the $Z$ LED lit only on qualifying vend edges.  When
+        behavior matched the specification, we demonstrated the working circuit to the TA.
+\end{enumerate}
+
+If your section requires a physical breadboard photograph in addition to the schematic, add it
+here; the schematic figure already documents the intended netlist.
 
 % Optional: uncomment when you export screenshots from your HDL/simulation tool
 % \begin{figure}[H]
@@ -301,9 +495,14 @@ $ND{=}11$ as a don't-care reflects a single-slot sensor assumption and simplifie
 Displaying state as $0$--$4$ ``nickel units'' keeps the 7-segment interface simple with a
 single 7448-driven digit.
 
+The Mealy equation for $Z$ matches the transition labels on Figure~\ref{fig:states}: the LED
+is asserted together with the dime or nickel edge that completes a sale, not during idle
+holds at 15\,c or 20\,c.
+
 Comparing D and JK realizations is problem-dependent: DFFs give $D_i = Y_i$ directly, while JK
-maps may merge $J$ and $K$ terms across bits.  The winner is whichever meets timing with the
-fewest packages in your mapped equations---document the gate counts you actually built.
+maps may merge $J$ and $K$ terms across bits.  For our build, two dual JK packages plus the
+7400/7410 field matched the approved schematic; a dual-D solution would still need the same
+NAND network for $Y_2,Y_1,Y_0$.
 
 Breadboard errors (floating inputs, swapped $Q/\overline{Q}$, incorrect CLR polarity) were the
 main debug issues; the slow 0.5\,Hz clock made state transitions easy to follow visually.
