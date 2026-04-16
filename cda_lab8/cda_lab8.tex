@@ -497,13 +497,23 @@ the vend LED.}
         be clocked in slowly for observation.
   \item \textbf{Breadboard implementation.}  We wired the TA-approved schematic
         (Figure~\ref{fig:schematic}), double-checking power, ground, CLR/PRE defaults, and
-        each NAND/JK connection against the datasheet pin diagrams.
+        each NAND/JK connection against the datasheet pin diagrams.  The assembled hardware is
+        shown in Figure~\ref{fig:breadboard}.
   \item \textbf{Testing and demonstration.}  We applied test sequences including five nickels
         to reach 25\,c; two dimes plus one nickel; dime--dime--nickel; and a dime from 20\,c to
         confirm \textit{vend} with no change returned.  The 7-segment digit tracked
         $0$--$4$\,nickel-units, and the $Z$ LED lit only on qualifying vend edges.  When
         behavior matched the specification, we demonstrated the working circuit to the TA.
 \end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{circuit.jpg}
+\caption{Breadboard implementation of the vending machine controller: dual JK packages for
+state, NAND next-state and output logic, seven-segment display with decoder, vend indicator LED,
+and supporting passive components and wiring.}
+\label{fig:breadboard}
+\end{figure}
 
 % Optional: uncomment when you export screenshots from your HDL/simulation tool
 % \begin{figure}[H]
