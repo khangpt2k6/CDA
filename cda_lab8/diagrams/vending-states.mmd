@@ -1,0 +1,33 @@
+%% Lab 8 — vending FSM (5¢ steps, vend at ≥25¢, no change)
+%% If Unicode labels fail in your viewer, switch to ASCII (N', D') in edge text.
+
+stateDiagram-v2
+  direction LR
+
+  [*] --> S0 : reset
+
+  state "0 c" as S0
+  state "5 c" as S1
+  state "10 c" as S2
+  state "15 c" as S3
+  state "20 c" as S4
+
+  S0 --> S0 : hold (N=0,D=0)
+  S0 --> S1 : N
+  S0 --> S2 : D
+
+  S1 --> S1 : hold
+  S1 --> S2 : N
+  S1 --> S3 : D
+
+  S2 --> S2 : hold
+  S2 --> S3 : N
+  S2 --> S4 : D
+
+  S3 --> S3 : hold
+  S3 --> S4 : N
+  S3 --> S0 : D, vend
+
+  S4 --> S4 : hold
+  S4 --> S0 : N, vend
+  S4 --> S0 : D, vend

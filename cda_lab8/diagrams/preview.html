@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Lab 8 diagrams (Mermaid preview)</title>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "neutral",
+      securityLevel: "loose",
+      flowchart: { nodeSpacing: 88, rankSpacing: 105, padding: 36 },
+      themeVariables: { fontSize: "15px" }
+    });
+  </script>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 960px; }
+    h1 { font-size: 1.25rem; }
+    h2 { font-size: 1rem; margin-top: 2rem; }
+    pre.mermaid { background: #fafafa; padding: 1rem; border-radius: 8px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>CDA 3201L Lab 8 — diagram preview</h1>
+  <p>Open this file in a browser. Edit the Mermaid text below, or paste contents from <code>fsm-block.mmd</code> / <code>vending-states.mmd</code>.</p>
+
+  <h2>Block diagram (Figure 2 style)</h2>
+  <pre class="mermaid">
+flowchart TB
+  IN["**Inputs**<br/><br/>N, D"]
+  NS["**Next-state logic**<br/><br/>(NAND–NAND)"]
+  CLK["**0.5 Hz**<br/><br/>CLK"]
+  REG["**State register**<br/><br/>3 FFs + CLR̄"]
+  SEG["**7448 decoder**<br/><br/>7-segment display"]
+  VEND["**Output logic**<br/><br/>**Vend**<br/><br/>(NAND–NAND)"]
+
+  IN --> NS
+  NS -->|"Y₂Y₁Y₀"| REG
+  CLK --> REG
+  REG -->|"y₂y₁y₀"| SEG
+  REG -->|"y₂y₁y₀"| VEND
+  REG -.->|"feedback y₂y₁y₀"| NS
+  </pre>
+
+  <h2>State diagram</h2>
+  <pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  [*] --> S0 : reset
+  state "0 c" as S0
+  state "5 c" as S1
+  state "10 c" as S2
+  state "15 c" as S3
+  state "20 c" as S4
+  S0 --> S0 : hold
+  S0 --> S1 : N
+  S0 --> S2 : D
+  S1 --> S1 : hold
+  S1 --> S2 : N
+  S1 --> S3 : D
+  S2 --> S2 : hold
+  S2 --> S3 : N
+  S2 --> S4 : D
+  S3 --> S3 : hold
+  S3 --> S4 : N
+  S3 --> S0 : D, vend
+  S4 --> S4 : hold
+  S4 --> S0 : N, vend
+  S4 --> S0 : D, vend
+  </pre>
+</body>
+</html>

@@ -1,0 +1,31 @@
+%% Lab 8 — Figure 2 style: vending FSM block diagram
+%% Render at https://mermaid.live or use preview.html
+%% Extra nodeSpacing / padding so labels do not crowd each other.
+
+%%{init: {"themeVariables": {"fontSize": "15px"}, "flowchart": {"nodeSpacing": 88, "rankSpacing": 105, "padding": 36}}}%%
+
+flowchart TB
+  subgraph inputs[" "]
+    IN["**Inputs**<br/><br/>N, D"]
+  end
+
+  NS["**Next-state logic**<br/><br/>(NAND–NAND)"]
+
+  subgraph regcol[" "]
+    CLK["**0.5 Hz**<br/><br/>CLK"]
+    REG["**State register**<br/><br/>3 FFs + CLR̄"]
+  end
+
+  SEG["**7448 decoder**<br/><br/>7-segment display"]
+  VEND["**Output logic**<br/><br/>**Vend**<br/><br/>(NAND–NAND)"]
+
+  IN --> NS
+  NS -->|"Y₂Y₁Y₀"| REG
+  CLK --> REG
+  REG -->|"y₂y₁y₀"| SEG
+  REG -->|"y₂y₁y₀"| VEND
+
+  REG -.->|"feedback y₂y₁y₀"| NS
+
+  classDef ghost fill:transparent,stroke:transparent;
+  class inputs,regcol ghost;

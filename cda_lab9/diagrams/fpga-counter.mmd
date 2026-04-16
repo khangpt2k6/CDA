@@ -1,0 +1,8 @@
+%% Lab 9 — conceptual block (not a netlist replacement for Vivado)
+flowchart LR
+  OSC["12 MHz\n(board)"] --> CD["clk_div\n23-bit divider"]
+  CD -->|"slow_clk"| CTR["count[3:0]\nregister"]
+  PB["rst\npushbutton"] --> CD
+  PB --> CTR
+  CTR --> LED["LEDs"]
+  CTR --> SEV["(optional)\n7-seg / other"]

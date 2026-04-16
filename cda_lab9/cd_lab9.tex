@@ -42,9 +42,8 @@
 \end{center}
 
 \noindent
-This document answers Lab~9 questions 1--4 from \texttt{CDA3201L-Fall23-Lab-9.pdf}.  The
-handout states that the deliverable is these answers (with work shown); we typeset them for
-clarity and include the requested schematic capture where indicated.
+Below are our answers for Lab~9 (questions 1--4).  We typed them up so they are easy to read,
+and dropped in the Vivado schematic where the lab asked for a screenshot.
 
 % ─────────────────────────────────────────────
 \section{Introduction}
@@ -74,7 +73,7 @@ flip-flops.
 
 \subsection{(5 pts) What kind of reset is used in \texttt{counter.v}?  Practical effect?}
 
-The handout counter uses \textbf{synchronous, active-high} reset.  Evidence in the RTL:
+The counter in the lab instructions uses \textbf{synchronous, active-high} reset.  You can see it in the RTL:
 
 \begin{itemize}
   \item \texttt{if (rst == 1'b1)} appears inside \texttt{always} blocks that trigger on
@@ -92,7 +91,7 @@ display from counting until you let go.
 
 % Keep the code listing on one page (avoid a broken frame at the page break).
 \Needspace{22\baselineskip}
-\begin{lstlisting}[caption={Excerpt: synchronous active-high reset (lab handout).}]
+\begin{lstlisting}[caption={Excerpt: synchronous active-high reset (from the lab counter code).}]
 always @ (posedge clk) begin
   if (rst == 1'b1) begin
     clk_div = 0;

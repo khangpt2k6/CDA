@@ -28,7 +28,7 @@
 
 \begin{center}
   {\Large \textbf{Report for CDA 3201L Lab \#8}}\\[10pt]
-  {\large \textbf{Sequential Circuits -- FSM Design (Vending Machine Controller)}}\\[20pt]
+  {\large \textbf{Sequential Circuits: FSM Design (Vending Machine Controller)}}\\[20pt]
   \begin{tabular}{ll}
     \textbf{Name:} Tuan Khang Phan & \textbf{UID:} U30382645 \\[4pt]
     \textbf{Name:} Huu Phat Nguyen & \textbf{UID:} U46082380 \\
@@ -38,21 +38,20 @@
 % ─────────────────────────────────────────────
 \section{Introduction}
 
-This report follows the CDA\,3201L Lab~8 handout \texttt{CDA3201L-Fall23-Lab-8.pdf}: we answer
-\textbf{all four written questions} (state diagram, state table/minimization, assignment and
-flip-flop equations with required I/O, and block-level plan with NAND--NAND), then document
-the \textbf{experimental} steps (0.5\,Hz clock, breadboard, test, TA demo).  The purpose of
-this lab is to practice turning an informal specification into a finite-state machine (FSM)
-design and a working sequential circuit.  We designed and implemented a
-simple vending machine controller that accepts nickels (5\,cents) and dimes (10\,cents)
-through a single coin slot.  Two sensor inputs, $N$ (nickel) and $D$ (dime), indicate which
-coin was detected.  When the accumulated credit reaches 25\,cents, the controller asserts a
-\textit{vend} output and dispenses candy; the specification states that the machine does not
-return change, so any coin that brings the total to 25\,cents or beyond triggers a vend and
-returns the FSM to the idle (0\,cents) state.  The implementation uses flip-flops for state,
-combinational logic for next-state and outputs, a 7-segment display to show the current state
-(or an agreed encoding of the credit), an LED for the vend condition, and an asynchronous
-active-low reset.
+This report presents the design, analysis, and experimental verification of a finite-state
+machine (FSM) that implements a simplified vending-machine controller for CDA\,3201L Lab~8.
+The specification calls for a single coin slot with nickel and dime sensor inputs $N$ and
+$D$, a sale price of 25\,c, a \textit{vend} pulse when sufficient credit is accumulated, and a
+return to the idle state without making change when a coin exceeds the required amount.  The
+document is organized to answer the four written questions in order: state diagram, state
+table and minimization, state assignment with excitation equations and required I/O, and a
+block-level plan using NAND--NAND realization, followed by implementation notes, breadboard
+construction, and functional testing with a 0.5\,Hz demonstration clock under TA approval.
+
+The realization stores state in edge-triggered flip-flops, derives next-state and
+\textit{vend} behavior with combinational logic, displays the encoded credit on a seven-segment
+indicator, uses an LED for the sale-complete indication, and connects reset to the asynchronous
+clear inputs as required for the laboratory hardware.
 
 % ─────────────────────────────────────────────
 \section{Methods and Materials}
@@ -61,7 +60,7 @@ We used the following components and equipment (exact IC mix depends on the chos
 type after comparing D vs.\ JK realizations):
 
 \begin{itemize}
-  \item Two SN74LS112A (or SN74HC112) dual negative-edge-triggered JK flip-flop ICs---three
+  \item Two SN74LS112A (or SN74HC112) dual negative-edge-triggered JK flip-flop ICs, using three
         flip-flops for state bits $y_2,y_1,y_0$, with asynchronous $\overline{\text{CLR}}$ /
         $\overline{\text{PRE}}$ per datasheet
   \item SN74LS00N quad 2-input NAND and SN74LS10N triple 3-input NAND for next-state and
@@ -89,7 +88,7 @@ under the slow clock and demonstrated operation to the TA.
 
 \subsection{State Diagram (Lab Question 1)}
 
-\textbf{Specification (from the lab handout).}  The machine accepts nickels and dimes on a
+\textbf{What we assumed.}  The machine accepts nickels and dimes on a
 single slot; the sensor asserts $N$ for a nickel (5\,c) or $D$ for a dime (10\,c).  Candy
 costs 25\,c; when credit reaches or exceeds 25\,c the machine \textit{vends} and credit
 returns to zero; \textbf{no change} is returned (a dime from 20\,c still vends and clears to
@@ -118,23 +117,29 @@ detected.''  We assume the slot never reports both at once, so $N{=}D{=}1$ is a
         $D\to S_0$ with \textit{vend}.
 \end{itemize}
 
+\Needspace{26\baselineskip}
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[->, >=Stealth, thick,
-    every state/.style={minimum size=1.15cm, font=\small}]
+\begin{tikzpicture}[
+    ->, >=Stealth, thick,
+    every state/.style={minimum size=1.32cm, font=\small},
+    every initial by arrow/.style={font=\scriptsize}
+  ]
 
-  \node[state, initial, initial text=reset, initial where=above]
-    (s0) at (90:2.8cm)  {$0$\,c};
+  % Reset enters from the left so it does not sit on top of the $\overline{N}\,\overline{D}$ hold loop.
+  \node[state, initial, initial text=reset, initial where=left, initial distance=19mm]
+    (s0) at (90:3.05cm)  {$0$\,c};
   \node[state]
-    (s1) at (18:2.8cm)  {$5$\,c};
+    (s1) at (18:3.05cm)  {$5$\,c};
   \node[state]
-    (s2) at (-54:2.8cm) {$10$\,c};
+    (s2) at (-54:3.05cm) {$10$\,c};
   \node[state]
-    (s3) at (-126:2.8cm){$15$\,c};
+    (s3) at (-126:3.05cm){$15$\,c};
   \node[state]
-    (s4) at (162:2.8cm) {$20$\,c};
+    (s4) at (162:3.05cm) {$20$\,c};
 
-  \path (s0) edge [loop above] node[above, font=\scriptsize] {$\overline{N}\,\overline{D}$} (s0)
+  \path (s0) edge [in=52, out=128, loop, min distance=11mm]
+              node[above, font=\scriptsize, inner sep=2pt, yshift=1pt] {$\overline{N}\,\overline{D}$} (s0)
         (s0) edge [bend left=12] node[right, font=\scriptsize] {$N$} (s1)
         (s0) edge [bend left=18] node[above, font=\scriptsize] {$D$} (s2);
 
@@ -159,9 +164,10 @@ $\geq 25$\,cents, asserts \textit{vend}, and returns to 0\,cents.}
 
 \subsection{State Table and State Minimization (Lab Question 2)}
 
-The lab asks for the state table \emph{derived from} the transition diagram, then a check
-for redundant states; if any were equivalent, we would merge them and redraw the diagram.
-Outputs for the handout circuit are: current state on the 7-segment display (encoded below)
+We built the state table straight from the diagram, then checked whether any rows could be
+merged.  If two states had been the same, we would have collapsed them and redrawn the diagram.
+That reduction was not required here.
+Outputs for our build: current state on the 7-segment display (encoded below)
 and a \textit{vend} signal (output $Z$ in our schematic) asserted when a vend occurs; we use a
 \textbf{Mealy} definition for $Z$ so it is~1 only on input combinations that cause a vend
 transition (coin present \emph{and} next state is idle), which matches a single-cycle LED
@@ -365,7 +371,7 @@ excitation table to express $J_i,K_i$ as functions of $(y_2,y_1,y_0,N,D)$, then 
 and $K_i$ with the same don't-cares.  In our build we used \textbf{SN74LS112 dual JK} devices
 (Figure~\ref{fig:schematic}): two ICs provide four JK cells, three used for $y_2,y_1,y_0$.
 
-\subsubsection*{D vs.\ JK---fewest ICs (lab requirement)}
+\subsubsection*{D versus JK flip-flops: IC count (lab requirement)}
 
 Both options need \textbf{two dual--FF packages} for three bits (two SN74LS74 if D, or two
 SN74LS112 if JK).  For this vending assignment, the combinational NAND count for next state
@@ -386,7 +392,7 @@ This is purely combinational from present state and $N,D$ before the edge; it NA
 like the next-state logic and drives the vend LED through a resistor (typically
 220--470\,$\Omega$ to limit current).
 
-\subsubsection*{Required I/O (handout items 3a--3d and pull resistors)}
+\subsubsection*{Required I/O (parts (a)--(d) of the assignment, plus pull resistors)}
 
 \begin{enumerate}
   \item[\textbf{(a)}] \textbf{$N$ and $D$:} two active-high lines from switches or the coin
@@ -416,40 +422,50 @@ the 7-segment and LED loads.  After freezing the state assignment and equations 
 presented Figures~\ref{fig:block} and~\ref{fig:schematic} to the TA and proceeded only after
 approval.
 
-\Needspace{11\baselineskip}
+\Needspace{18\baselineskip}
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[>=Stealth, thick,
-    block/.style={draw, rounded corners, minimum width=2.95cm, minimum height=1.02cm, align=center},
+    block/.style={draw, rounded corners, align=center,
+        inner sep=11pt,
+        outer sep=4pt,
+        minimum width=3.45cm,
+        minimum height=1.42cm},
+    blockout/.style={block, minimum width=3.95cm, minimum height=1.55cm, inner sep=12pt},
     line/.style={->},
-    clkbox/.style={draw, rounded corners, minimum width=1.32cm, minimum height=0.55cm,
+    clkbox/.style={draw, rounded corners, inner sep=9pt, outer sep=3pt,
+                   minimum width=1.6cm, minimum height=0.78cm,
                    font=\small, align=center}]
 
-  \node[block] (in) {Inputs\\$N$, $D$};
-  \node[block, right=1.25cm of in] (ns) {Next-state\\logic (NAND--NAND)};
-  \node[block, right=1.25cm of ns] (reg) {State register\\3 FFs + $\overline{\text{CLR}}$};
-  \node[block, below=1.05cm of reg, xshift=0.85cm] (out) {Output logic\\\textit{Vend} (NAND--NAND)};
-  \node[block, below=1.05cm of reg, xshift=-0.85cm] (seg) {7448 +\\7-segment};
-  \node[clkbox, above=0.48cm of reg] (clk) {0.5\,Hz\\CLK};
+  \node[block] (in) {Inputs\\[0.4em]$N$, $D$};
+  \node[block, right=1.7cm of in] (ns) {Next-state logic\\[0.4em](NAND--NAND)};
+  \node[block, right=1.7cm of ns] (reg) {State register\\[0.4em]3 FFs + $\overline{\text{CLR}}$};
+  % Pull the two output blocks farther apart so they cannot visually merge.
+  \node[blockout, below=1.85cm of reg, xshift=-2.05cm] (seg) {7448 decoder\\[0.45em]7-segment\\[0.3em]{\small (display)}};
+  \node[blockout, below=1.85cm of reg, xshift=2.05cm] (out) {Output logic\\[0.45em]\textit{Vend}\\[0.3em]{\small (NAND--NAND)}};
+  \node[clkbox, above=0.72cm of reg] (clk) {0.5\,Hz\\[0.25em]CLK};
 
   \draw[line] (in) -- (ns);
-  \draw[line] (ns) -- node[above, font=\small, inner sep=2pt] {$Y_2Y_1Y_0$} (reg);
+  \draw[line] (ns) -- node[above, font=\small, inner sep=5pt, yshift=5pt] {$Y_2Y_1Y_0$} (reg);
   \draw[line] (clk.south) -- (reg.north);
 
-  % Present state: trunk then symmetric branches to 7-segment (left) and Vend (right).
-  \coordinate (fanout) at ($(reg.south)+(0,-0.38)$);
-  \draw[line] (reg.south)
-        -- node[fill=white, inner sep=1pt, font=\small, pos=0.45, anchor=west, xshift=-1pt] {$y_2y_1y_0$}
-        (fanout);
-  \draw[line] (fanout) -| (seg.north);
-  \draw[line] (fanout) -| (out.north);
+  % Longer trunk, then a clean horizontal bus before turning up to each output block.
+  % Avoid a fill=white node on the vertical segment (it can hide the shaft above the arrowhead).
+  \coordinate (fanout) at ($(reg.south)+(0,-0.78)$);
+  \draw[line] (reg.south) -- (fanout);
+  \node[font=\small, anchor=east, inner sep=1pt]
+        at ($(reg.south)!0.44!(fanout)+(-0.34,0)$) {$y_2y_1y_0$};
+  \coordinate (busL) at ($(seg.north |- fanout)$);
+  \coordinate (busR) at ($(out.north |- fanout)$);
+  \draw[line] (fanout) -- (busL) -- (seg.north);
+  \draw[line] (fanout) -- (busR) -- (out.north);
 
-  % Dashed feedback: dip under the top row, label matches course diagram.
-  \draw[dashed, ->, shorten >=1.5pt, shorten <=1.5pt]
-       (reg.west) to[out=210,in=330, looseness=1.35]
-       node[pos=0.48, below, font=\scriptsize, yshift=-0.14cm, inner sep=1pt,
-            fill=white, align=center] {feedback\\$y_2y_1y_0$}
-       (ns.south east);
+  % Feedback sits lower and wider so it does not crowd the output row.
+  \draw[dashed, ->, shorten >=3pt, shorten <=3pt]
+       (reg.west) to[out=200,in=310, looseness=1.65]
+       node[pos=0.52, below, font=\scriptsize, yshift=-0.42cm, inner sep=6pt,
+            fill=white, align=center] {feedback\\[0.2em]$y_2y_1y_0$}
+       ($(ns.south east)+(0.12,-0.08)$);
 
 \end{tikzpicture}
 \caption{High-level block diagram for the vending FSM.  Inputs $N,D$ and registered state drive
@@ -474,10 +490,6 @@ the vend LED.}
 
 \subsection{Experimental Procedure and Observations}
 
-The Canvas ``Report Guidelines'' require both written answers to the assignment questions and
-a description of the experimental work; this subsection addresses the \textbf{experimental
-portion} of Lab~8 exactly as listed on the handout.
-
 \begin{enumerate}
   \item \textbf{Function generator.}  We set the function generator to output a
         \textbf{0.5\,Hz} square wave on the \textbf{CMOS} output, as in earlier labs, and fed
@@ -492,9 +504,6 @@ portion} of Lab~8 exactly as listed on the handout.
         $0$--$4$\,nickel-units, and the $Z$ LED lit only on qualifying vend edges.  When
         behavior matched the specification, we demonstrated the working circuit to the TA.
 \end{enumerate}
-
-If your section requires a physical breadboard photograph in addition to the schematic, add it
-here; the schematic figure already documents the intended netlist.
 
 % Optional: uncomment when you export screenshots from your HDL/simulation tool
 % \begin{figure}[H]

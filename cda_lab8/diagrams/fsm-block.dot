@@ -1,0 +1,25 @@
+// Lab 8 — block diagram (Graphviz)
+// dot -Tpng fsm-block.dot -o fsm-block.png
+// dot -Tsvg fsm-block.dot -o fsm-block.svg
+
+digraph vending_fsm_block {
+  graph [fontname="Helvetica", fontsize=12, rankdir=LR, splines=ortho,
+         nodesep=1.25, ranksep=1.6, margin=0.45];
+  node [shape=box, style="rounded,filled", fillcolor="#f5f5f5", fontname="Helvetica",
+        fontsize=11, margin="0.38,0.28"];
+  edge [fontname="Helvetica", fontsize=10, labelfontsize=10];
+
+  IN   [label="Inputs\n\nN, D"];
+  NS   [label="Next-state logic\n\n(NAND–NAND)"];
+  REG  [label="State register\n\n3 FFs + CLR̄"];
+  CLK  [label="0.5 Hz\n\nCLK", fillcolor="#e3f2fd", margin="0.28,0.20"];
+  SEG  [label="7448 decoder\n\n7-segment display"];
+  VEND [label="Output logic\n\nVend\n\n(NAND–NAND)"];
+
+  IN -> NS;
+  NS -> REG [label="Y₂Y₁Y₀"];
+  CLK -> REG;
+  REG -> SEG [label="y₂y₁y₀"];
+  REG -> VEND [label="y₂y₁y₀"];
+  REG -> NS [label="feedback y₂y₁y₀", style=dashed, constraint=false];
+}
